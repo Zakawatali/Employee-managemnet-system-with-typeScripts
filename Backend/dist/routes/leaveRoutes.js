@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const leaveController_1 = require("../controllers/leaveController");
+const authmiddlewares_1 = require("../middlewares/authmiddlewares");
+const router = (0, express_1.Router)();
+router.post("/applyLeave", authmiddlewares_1.protect, leaveController_1.applyLeave);
+router.get("/", authmiddlewares_1.protect, leaveController_1.getAllLeaves);
+router.get("/:employeeId", authmiddlewares_1.protect, leaveController_1.getLeaveByEmployeeId);
+router.put("/approve/:id", authmiddlewares_1.protect, (0, authmiddlewares_1.authorizeRoles)("Admin", "HR"), leaveController_1.approveLeave);
+router.put("/reject/:id", authmiddlewares_1.protect, (0, authmiddlewares_1.authorizeRoles)("Admin", "HR"), leaveController_1.rejectLeave);
+router.put("/cancel/:id", authmiddlewares_1.protect, (0, authmiddlewares_1.authorizeRoles)("Admin", "HR"), leaveController_1.cancelLeave);
+router.delete("/:id", authmiddlewares_1.protect, (0, authmiddlewares_1.authorizeRoles)("Admin", "HR"), leaveController_1.deleteLeave);
+exports.default = router;
