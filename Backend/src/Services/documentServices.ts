@@ -28,20 +28,34 @@ export const uploadDocumentService = async (
 /**
  * Service to handle fetching documents with role-based filtering.
  */
+// export const getAllDocumentsService = async (
+//   user: AuthenticatedRequest['user']
+// ): Promise<DocumentDocument[]> => {
+//   // Business Logic: Only Admin/HR can see all documents; Employees only see their own.
+//   const filter =
+//     user?.role !== "Admin" && user?.role !== "HR"
+//       ? { employee: user?._id }
+//       : {};
+
+//   // Persistence via Repository
+//   const documents = await documentRepository.findDocuments(filter);
+  
+//   // Note: We don't throw 404 if array is empty, as it's a valid result (no documents found).
+//   return documents;
+// };
 export const getAllDocumentsService = async (
-  user: AuthenticatedRequest['user']
-): Promise<DocumentDocument[]> => {
-  // Business Logic: Only Admin/HR can see all documents; Employees only see their own.
+  user: AuthenticatedRequest['user'],
+  page: number = 1,
+  limit: number = 10
+): Promise<{ documents: DocumentDocument[]; total: number; totalPages: number; page: number }> => {
   const filter =
     user?.role !== "Admin" && user?.role !== "HR"
       ? { employee: user?._id }
       : {};
 
-  // Persistence via Repository
-  const documents = await documentRepository.findDocuments(filter);
-  
-  // Note: We don't throw 404 if array is empty, as it's a valid result (no documents found).
-  return documents;
+  const result = await documentRepository.findDocuments(filter, page, limit);
+
+  return result;
 };
 
 /**

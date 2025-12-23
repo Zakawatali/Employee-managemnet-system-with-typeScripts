@@ -4,9 +4,9 @@ import EmployeeAttendance from '../components/employeeAttendace'
 
 function EmployeeAttendancePage() {
   return (
-   <Layout>
+   
     <EmployeeAttendance/>
-   </Layout>
+  
   )
 }
 

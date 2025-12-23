@@ -1,6 +1,7 @@
 
 
-import React, { useEffect, useState } from "react";
+
+import React, { useEffect, useState, useMemo } from "react";
 import {
   FileText,
   CheckCircle,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import axios from "../../util/axiosInstance";
 import toast from "react-hot-toast";
+import { debounce } from "../../util/debounce";
 
 type LeaveStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
 type LeaveAction = "Approved" | "Rejected";
@@ -37,12 +39,38 @@ const LeaveManagement: React.FC = () => {
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedLeave, setSelectedLeave] = useState<Leave | null>(null);
+  const [page, setPage] = useState<number>(1);         // current page
+const [totalPages, setTotalPages] = useState<number>(1); // total pages from backend
+const LIMIT = 5; // ya jitni items per page chahiye
+
+
+const [searchInput, setSearchInput] = useState("");
+
+const [leaveTypeInput, setLeaveTypeInput] = useState("");
+
+ const [search, setSearch] = useState("");
+ const [leaveType, setLeaveType] = useState("");
+
+
+
 
   // ✅ Fetch all leave requests
-  const fetchLeaves = async () => {
+  const fetchLeaves = async (page:number=1) => {
     try {
       setLoading(true);
-      const res = await axios.get("/api/leaves");
+      const res = await axios.get(`/api/leaves`,{
+        params: {
+          page,
+          limit: LIMIT,
+          search,       // 👈 name search
+          leaveType,    // 👈 dropdown filter
+        },
+      });
+const data = res.data.data;
+console.log("the data is",data) // backend se jo structure return ho raha hai
+setLeaves(data.leaves);
+setTotalPages(data.totalPages);
+
       const payload = res.data?.data;
       const list: Leave[] = Array.isArray(payload)
         ? payload
@@ -61,6 +89,7 @@ const LeaveManagement: React.FC = () => {
   const deleteLeave = async (id: string) => {
     try {
       const res = await axios.delete(`/api/leaves/${id}`);
+      
       if (res.data.success) {
         toast.success(res.data.message || "Leave deleted successfully");
         setLeaves((prev) => prev.filter((leave) => leave._id !== id));
@@ -73,10 +102,25 @@ const LeaveManagement: React.FC = () => {
       console.error("Error deleting leave:", error);
     }
   };
+  
 
+const debouncedSetFilters = useMemo(
+  () =>
+    debounce((searchValue: string, leaveTypeValue: string) => {
+      setSearch(searchValue);
+      setLeaveType(leaveTypeValue);
+      setPage(1); // reset page when filters change
+    }, 800),
+  []
+);
+
+// Trigger debounced API call whenever inputs change
+useEffect(() => {
+  debouncedSetFilters(searchInput, leaveTypeInput);
+}, [searchInput, leaveTypeInput]);
   useEffect(() => {
-    fetchLeaves();
-  }, []);
+    fetchLeaves(page);
+  }, [page, search, leaveType]);
 
  
 
@@ -162,6 +206,30 @@ const LeaveManagement: React.FC = () => {
           </div>
         </div>
       </div>
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+  {/* Search by name */}
+  <input
+    type="text"
+    placeholder="Search by employee name"
+    value={searchInput}
+    onChange={(e) => setSearchInput(e.target.value)}
+    className="border rounded-lg px-4 py-2 w-full sm:w-1/3"
+  />
+
+  {/* Filter by leave type */}
+  <select
+    value={leaveTypeInput}
+    onChange={(e) => setLeaveTypeInput(e.target.value)}
+    className="border rounded-lg px-4 py-2 w-full sm:w-1/4"
+  >
+    <option value="">All Leave Types</option>
+    <option value="SICK">Sick</option>
+    <option value="CASUAL">Casual</option>
+    <option value="ANNUAL">Annual</option>
+  </select>
+
+
+</div>
 
       {/* Leave Table */}
       <div className="p-6 rounded-xl shadow-sm bg-white border border-gray-100">
@@ -254,6 +322,44 @@ const LeaveManagement: React.FC = () => {
           </div>
         )}
       </div>
+      {/* Pagination */}
+{totalPages > 1 && (
+  <div className="flex justify-center items-center gap-2 mt-6">
+    {/* Previous */}
+    <button
+      onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+      disabled={page === 1}
+      className="px-3 py-1 rounded-lg border text-sm disabled:opacity-50 hover:bg-gray-100"
+    >
+      Prev
+    </button>
+
+    {/* Page Numbers */}
+    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+      <button
+        key={p}
+        onClick={() => setPage(p)}
+        className={`px-3 py-1 rounded-lg border text-sm ${
+          page === p
+            ? "bg-blue-600 text-white border-blue-600"
+            : "hover:bg-gray-100"
+        }`}
+      >
+        {p}
+      </button>
+    ))}
+
+    {/* Next */}
+    <button
+      onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+      disabled={page === totalPages}
+      className="px-3 py-1 rounded-lg border text-sm disabled:opacity-50 hover:bg-gray-100"
+    >
+      Next
+    </button>
+  </div>
+)}
+
 
       {/* Modal */}
       {selectedLeave && (
@@ -357,7 +463,10 @@ const LeaveManagement: React.FC = () => {
           </div>
         </div>
       )}
+     
+
     </div>
+    
   );
 };
 

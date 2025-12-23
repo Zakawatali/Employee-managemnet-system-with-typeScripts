@@ -1,6 +1,6 @@
 import * as employeeRepository from "../repositories/employeeRepositories";
 import { EmployeeProfileDocument } from "../models/EmployeeProfile"; // Assuming this type is available
-
+import { ApiError } from "../utils/ApiError";
 // Define a custom error type for predictable HTTP status codes
 
 
@@ -36,7 +36,7 @@ export const updateEmployeeService = async (
   const updatedEmployee = await employeeRepository.updateEmployeeById(id, updateData);
 
   if (!updatedEmployee) {
-    throw new Error("Employee not found");
+    throw new ApiError("Employee not found",404);
     return;
   }
 
@@ -65,12 +65,140 @@ export const deleteEmployeeService = async (id: string): Promise<EmployeeProfile
  * @returns An object containing the array of employees and their count.
  * @throws AppError for 404 if no employees are found.
  */
-export const getAllEmployeesService = async (): Promise<{ employees: EmployeeProfileDocument[], count: number }> => {
-  const employees = await employeeRepository.findAllEmployees();
+// services/employee.service.ts
+// export const getAllEmployeesService = async (
+//   page: number,
+//   limit: number
+// ): Promise<{
+//   employees: EmployeeProfileDocument[];
+//   page: number;
+//   limit: number;
+//   totalEmployees: number;
+//   totalPages: number;
+// }> => {
+//   const skip = (page - 1) * limit;
 
-  if (!employees || employees.length === 0) {
-    throw new Error("No employees found");
+//   const totalEmployees = await employeeRepository.countEmployees();
+//   const employees = await employeeRepository.findAllEmployees(skip, limit);
+
+//   if (!employees || employees.length === 0) {
+//     throw new Error("No employees found");
+//   }
+
+//   return {
+//     employees,
+//     page,
+//     limit,
+//     totalEmployees,
+//     totalPages: Math.ceil(totalEmployees / limit),
+//   };
+// };
+// export const getAllEmployeesService = async (
+//   page: number,
+//   limit: number,
+//   search: string,
+//   department: string
+// ): Promise<{
+//   employees: EmployeeProfileDocument[];
+//   page: number;
+//   limit: number;
+//   totalEmployees: number;
+//   totalPages: number;
+// }> => {
+//   const skip = (page - 1) * limit;
+
+//   // 🔍 dynamic filter
+//   const filter: any = {};
+
+//   if (search) {
+//     filter.$or = [
+//       { firstName: { $regex: search, $options: "i" } },
+//       { lastName: { $regex: search, $options: "i" } },
+//     ];
+//   }
+
+//   if (department) {
+//     filter.department = department;
+//   }
+
+//   const totalEmployees = await employeeRepository.countEmployees(filter);
+//   console.log(totalEmployees)
+//   if (!totalEmployees ) {
+//     throw new Error("No employees found");
+//   }
+
+//   const employees = await employeeRepository.findAllEmployees(
+//     filter,
+//     skip,
+//     limit
+//   );
+
+  
+
+//   return {
+//     employees,
+//     page,
+//     limit,
+//     totalEmployees,
+//     totalPages: Math.ceil(totalEmployees / limit),
+//   };
+// };
+
+export const getAllEmployeesService = async (
+  page: number,
+  limit: number,
+  search: string,
+  department: string
+): Promise<{
+  employees: EmployeeProfileDocument[];
+  page: number;
+  limit: number;
+  totalEmployees: number;
+  totalPages: number;
+}> => {
+  try {
+    const skip = (page - 1) * limit;
+
+    // 🔍 dynamic filter
+    const filter: any = {};
+
+    if (search) {
+      filter.$or = [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (department) {
+      filter.department = department;
+    }
+
+    // Count total employees matching the filter
+    const totalEmployees = await employeeRepository.countEmployees(filter);
+
+    // ❌ Throw ApiError if none found
+    if (!totalEmployees) {
+      throw new ApiError("No employees found", 404);
+    }
+
+    // Get employees for current page
+    const employees = await employeeRepository.findAllEmployees(
+      filter,
+      skip,
+      limit
+    );
+
+    return {
+      employees,
+      page,
+      limit,
+      totalEmployees,
+      totalPages: Math.ceil(totalEmployees / limit),
+    };
+  } catch (err: any) {
+    // ❌ Wrap any unexpected errors in ApiError with status 500
+    
+      throw err; // Already a custom error, rethrow
+   
   }
-
-  return { employees, count: employees.length };
 };

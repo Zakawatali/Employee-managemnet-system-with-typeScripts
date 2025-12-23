@@ -92,16 +92,50 @@ export const loginUser = async ( req: Request, res: Response, next: NextFunction
   }
 };
 
-export const getAllUsers = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+// export const getAllUsers = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+//   try {
+//     const users = await GetAllUserService();
+//     res.result = users;
+//     next(200);
+//   } catch (err) {
+//     res.error = err;
+//     next(500);
+//   }
+// };
+// export const getAllUsers = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+//   try {
+//     const page = parseInt(_req.query.page as string) || 1;
+//     const limit = parseInt(_req.query.limit as string) || 10;
+
+//     const result = await GetAllUserService(page, limit);
+
+//     res.result = result;
+//     next(200);
+//   } catch (err) {
+//     res.error = err;
+//     next(500);
+//   }
+// };
+export const getAllUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const users = await GetAllUserService();
-    res.result = users;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = (req.query.search as string) || "";
+
+    const result = await GetAllUserService(page, limit, search);
+
+    res.result = result;
     next(200);
   } catch (err) {
     res.error = err;
     next(500);
   }
 };
+
 
 export const approveUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {

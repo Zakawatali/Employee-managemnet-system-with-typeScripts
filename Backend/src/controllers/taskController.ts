@@ -55,24 +55,68 @@ export const createTask = async (
   }
 };
 
+// export const getAllTasks = async (
+//   _req: AuthenticatedRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     const tasks = await getAllTaskService();
+//       // res.success("Tasks fetched successfully", { tasks, count: tasks.length }, 200);
+//       res.result = tasks;
+//       next(200);
+//   } catch (error) {
+//     const message = error instanceof Error ? error.message : "Error fetching tasks";
+//     // res.error("Error fetching tasks", { error: message }, 500);
+//     res.error = message;
+//     next(500);
+//   }
+// };
 export const getAllTasks = async (
-  _req: AuthenticatedRequest,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const tasks = await getAllTaskService();
-      // res.success("Tasks fetched successfully", { tasks, count: tasks.length }, 200);
-      res.result = tasks;
-      next(200);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const result = await getAllTaskService(page, limit);
+
+    res.result = result;
+    next(200);
+
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error fetching tasks";
-    // res.error("Error fetching tasks", { error: message }, 500);
+    const message =
+      error instanceof Error ? error.message : "Error fetching tasks";
+
     res.error = message;
     next(500);
   }
 };
 
+// export const getTaskById = async (
+//   req: AuthenticatedRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     const { id } = req.params;
+//     const task = await getTaskByIdService(id);
+
+//     if (!task || task.length === 0) {
+//       res.error = "Task not found";
+//       next(404);
+//       return;
+//     }
+//     res.result = task;
+//     next(200);
+//   } catch (err) {
+//     const message = err instanceof Error ? err.message : "Error fetching task";
+//     res.error = message;
+//     next(500);
+//   }
+// };
 export const getTaskById = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -80,22 +124,23 @@ export const getTaskById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const task = await getTaskByIdService(id);
 
-    if (!task || task.length === 0) {
-      // res.error("Task not found", {}, 404);
+    // pagination params
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const result = await getTaskByIdService(id, page, limit);
+
+    if (!result.tasks.length) {
       res.error = "Task not found";
       next(404);
       return;
     }
 
-    // res.success("Task fetched successfully", { task }, 200);
-    res.result = task;
+    res.result = result;
     next(200);
   } catch (err) {
-    // const message = error instanceof Error ? error.message : "Error fetching task";
     const message = err instanceof Error ? err.message : "Error fetching task";
-    // res.error("Error fetching task", { error: message }, 500);
     res.error = message;
     next(500);
   }

@@ -6,8 +6,8 @@ import Layout from '../../components/Layout';
 
 export default function Achievement() {
   return (
-    <Layout>
+    
       <Achievements/>
-    </Layout>
+  
   )
 }

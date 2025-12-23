@@ -5,8 +5,8 @@ import Layout from '../../components/Layout';
 
 export default function EmployeeApprovaals() {
   return (
-    <Layout>
+   
       <EmployeeApprovaal/>
-    </Layout>
+    
   )
 }

@@ -4,9 +4,9 @@ import Dashboard from "../../components/user/Dashboard";
 
 function UserDashboard() {
   return (
-    <Layout>
+   
       <Dashboard/>
-    </Layout>
+   
   );
 }
 

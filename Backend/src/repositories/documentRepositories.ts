@@ -20,11 +20,32 @@ export const createDocument = async (docData: any): Promise<DocumentDocument> =>
  * @param filter Mongoose query filter object.
  * @returns Array of Document documents.
  */
-export const findDocuments = async (filter: any): Promise<DocumentDocument[]> => {
-  return Document.find(filter)
-    .populate("employee uploadedBy", "firstName lastName email")
-    .sort({ createdAt: -1 })
-    .exec();
+// export const findDocuments = async (filter: any): Promise<DocumentDocument[]> => {
+//   return Document.find(filter)
+//     .populate("employee uploadedBy", "firstName lastName email")
+//     .sort({ createdAt: -1 })
+//     .exec();
+// };
+export const findDocuments = async (
+  filter: any,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ documents: DocumentDocument[]; total: number; totalPages: number; page: number }> => {
+  const skip = (page - 1) * limit;
+
+  const [documents, total] = await Promise.all([
+    Document.find(filter)
+      .populate("employee uploadedBy", "firstName lastName email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec(),
+    Document.countDocuments(filter),
+  ]);
+
+  const totalPages = Math.ceil(total / limit);
+
+  return { documents, total, totalPages, page };
 };
 
 /**

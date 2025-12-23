@@ -19,8 +19,55 @@ export const createAchievementService = async (
 /**
  * Service to retrieve all achievements.
  */
-export const getAllAchievementsService = async (): Promise<AchievementDocument[]> => {
-  return achievementRepository.findAllAchievements();
+// export const getAllAchievementsService = async (): Promise<AchievementDocument[]> => {
+//   return achievementRepository.findAllAchievements();
+// };
+// export const getAllAchievementsService = async (
+//   page: number,
+//   limit: number
+// ): Promise<{
+//   achievements: AchievementDocument[];
+//   total: number;
+//   totalPages: number;
+//   page: number;
+// }> => {
+//   const skip = (page - 1) * limit;
+
+//   const [achievements, total] = await Promise.all([
+//     achievementRepository.findAllAchievementsPaginated(skip, limit),
+//     achievementRepository.countAchievements(),
+//   ]);
+
+//   return {
+//     achievements,
+//     total,
+//     totalPages: Math.ceil(total / limit),
+//     page,
+//   };
+// };
+export const getAllAchievementsService = async (
+  page: number,
+  limit: number,
+  search?: string
+): Promise<{
+  achievements: AchievementDocument[];
+  total: number;
+  totalPages: number;
+  page: number;
+}> => {
+  const skip = (page - 1) * limit;
+
+  const [achievements, total] = await Promise.all([
+    achievementRepository.findAllAchievementsPaginated(skip, limit, search),
+    achievementRepository.countAchievements(),
+  ]);
+
+  return {
+    achievements,
+    total,
+    totalPages: Math.ceil(total / limit),
+    page,
+  };
 };
 
 /**
@@ -28,23 +75,45 @@ export const getAllAchievementsService = async (): Promise<AchievementDocument[]
  * @param employeeId The ID of the employee whose achievements to fetch.
  */
 export const getAchievementsByEmployeeService = async (
-  employeeId: string
-): Promise<{ totalAchievements: number; data: AchievementDocument[] }> => {
+  employeeId: string,
+  page: number,
+  limit: number
+): Promise<{
+  data: AchievementDocument[];
+  total: number;
+  totalPages: number;
+  page: number;
+}> => {
   // Input Validation
   if (!employeeId || !Types.ObjectId.isValid(employeeId)) {
     throw new Error("Invalid Employee ID provided");
-    return;
   }
 
-  const achievements = await achievementRepository.findAchievementsByEmployeeId(employeeId);
+  const skip = (page - 1) * limit;
+
+  // Fetch achievements for the page
+  const achievements = await achievementRepository.findAchievementsByEmployeeId(
+    employeeId,
+    skip,
+    limit
+  );
 
   if (!achievements || achievements.length === 0) {
     throw new Error("No achievements found for this employee");
-    return;
   }
 
-  return { totalAchievements: achievements.length, data: achievements };
+  // Get total count for this employee
+  const total = await achievementRepository.countAchievementsbyid(employeeId);
+
+  return {
+    data: achievements,
+    total,
+    totalPages: Math.ceil(total / limit),
+    page,
+  };
 };
+
+
 
 /**
  * Service to update an existing achievement.

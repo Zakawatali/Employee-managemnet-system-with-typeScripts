@@ -5,9 +5,9 @@ import Attendance from '../../components/hr/attendance'
 
 function AttendancePage() {
   return (
-   <Layout>
+  
     <Attendance/>
-   </Layout>
+   
   )
 }
 

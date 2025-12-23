@@ -236,23 +236,67 @@ export const deleteLeave = async (
 /**
  * Controller to get all leave requests.
  */
-export const getAllLeaves = async (
-  _req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const leaves = await getAllLeavesService();
+// export const getAllLeaves = async (
+//   _req: AuthenticatedRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     const leaves = await getAllLeavesService();
 
-    res.result = leaves ;
-    next(200);
-  } catch (err) {
+//     res.result = leaves ;
+//     next(200);
+//   } catch (err) {
    
-    const message = err.message || "Error fetching leaves";
-    const statusCode = err.statusCode || 500;
+//     const message = err.message || "Error fetching leaves";
+//     const statusCode = err.statusCode || 500;
     
-    res.error = message;
-    next(statusCode);
+//     res.error = message;
+//     next(statusCode);
+//   }
+// };
+// controller/leaveController.ts
+// export const getAllLeaves = async (
+//   req: AuthenticatedRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     // Get page & limit from query params
+//     const page = parseInt(req.query.page as string) || 1;
+//     const limit = parseInt(req.query.limit as string) || 10;
+
+//     const result = await getAllLeavesService(page, limit);
+
+//     res.result = result; // { leaves: [], count, page, limit, totalPages }
+//     next(200);
+//   } catch (err) {
+//     const message = err.message || "Error fetching leaves";
+//     const statusCode = err.statusCode || 500;
+
+//     res.error = message;
+//     next(statusCode);
+//   }
+// };
+
+import { ApiError } from "../utils/ApiError";
+
+export const getAllLeaves = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = (req.query.search as string) || "";
+    const leaveType = (req.query.leaveType as string) || "";
+
+    const result = await getAllLeavesService(page, limit, search, leaveType);
+
+    res.result = result;
+    next(200) ;
+ 
+  } catch (err: any) {
+    res.error = err.message || "Error fetching leaves";
+    const statuscode = err.statusCode || 500;
+    next(statuscode);
   }
 };
 

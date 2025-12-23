@@ -275,6 +275,7 @@ const HRDashboard: React.FC = () => {
   const fetchEmployees = async () => {
     try {
       const res = await axios.get("/api/employee/");
+      console.log("employeaa",res.data.data?.employees)
       setEmployees(res.data.data?.employees || []);
     } catch (error: any) {
       toast.error(error?.response?.data?.message || error.message);
@@ -285,7 +286,8 @@ const HRDashboard: React.FC = () => {
   const fetchTasks = async () => {
     try {
       const res = await axios.get("/api/task/allTasks");
-      setTasks(res.data.data || []);
+      console.log("task",res.data.data)
+      setTasks(res.data.data.tasks || []);
     } catch (error: any) {
       toast.error(error?.response?.data?.data?.message || error.message);
     } finally {

@@ -92,6 +92,7 @@ import * as employeeService from "../Services/employeeServices";
 
 
 
+
 /**
  * Controller to get a single employee profile by ID.
  */
@@ -170,21 +171,57 @@ export const deleteEmployee = async (
 /**
  * Controller to get all employee profiles.
  */
+// controllers/employee.controller.ts
+// export const getAllEmployees = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     const page = parseInt(req.query.page as string) || 1;
+//     const limit = parseInt(req.query.limit as string) || 10;
+
+//     const result = await employeeService.getAllEmployeesService(page, limit);
+
+//     res.result = result;
+//     next(200);
+//   } catch (err: any) {
+//     const message = err.message || "Server error";
+//     const statusCode = err.statusCode || 500;
+
+//     res.error = message;
+//     next(statusCode);
+//   }
+// };
 export const getAllEmployees = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const result = await employeeService.getAllEmployeesService();
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
 
-    res.result = result; // Contains { employees: [], count: N }
+    // ✅ new query params
+    const search = (req.query.search as string) || "";
+    const department = (req.query.department as string) || "";
+
+    const result = await employeeService.getAllEmployeesService(
+      page,
+      limit,
+      search,
+      department
+    );
+
+    res.result = result;
     next(200);
-  } catch (err) {
-    const message = err.message || "Server error";
-    const statusCode = err.statusCode || 500;
+  } catch (err: any) {
     
-    res.error = message;
+   
+   
+    const statusCode = err.statusCode ;
+     
+    res.error = err.message;
     next(statusCode);
   }
 };

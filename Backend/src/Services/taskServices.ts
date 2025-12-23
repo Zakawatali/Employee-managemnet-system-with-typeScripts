@@ -33,13 +33,44 @@ export const CreatetaskService = async (
   return CreatetaskRepo(createTask);
 };
 
-export const getAllTaskService = async (): Promise<ITask[]> => {
-  return getalltaskRepo();
+// export const getAllTaskService = async (): Promise<ITask[]> => {
+//   return getalltaskRepo();
+// };
+export const getAllTaskService = async (
+  page: number,
+  limit: number
+) => {
+  const { tasks, total } = await getalltaskRepo(page, limit);
+
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    tasks,
+    page,
+    limit,
+    total,
+    totalPages
+  };
 };
 
-export const getTaskByIdService = async (id: string): Promise<ITask[]> => {
-  return getTaskByIdRepo(id);
+// export const getTaskByIdService = async (id: string): Promise<ITask[]> => {
+//   return getTaskByIdRepo(id);
+// };
+interface PaginatedTasks {
+  tasks: ITask[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export const getTaskByIdService = async (
+  id: string,
+  page: number,
+  limit: number
+): Promise<PaginatedTasks> => {
+  return getTaskByIdRepo(id, page, limit);
 };
+
 // Update Task
 // Assuming types and imports
 

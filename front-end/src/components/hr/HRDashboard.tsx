@@ -296,8 +296,9 @@ const HRDashboard: React.FC = () => {
   // Fetch tasks
   const fetchTasks = async () => {
     try {
-      const res = await axios.get<{ success: boolean; data: Task[] }>("/api/task/allTasks");
-      setTasks(res.data.data || []);
+      const res = await axios.get<{ success: boolean; data: { tasks: Task[]; page: number; total: number } }>("/api/task/allTasks");
+setTasks(res.data.data.tasks || []); // Make sure to assign the array, not the whole object
+
     } catch (error) {
       const err = error as  any;
       toast.error(err?.response?.data?.message || err.message);

@@ -3,11 +3,14 @@ import { Request, Response, NextFunction } from "express";
 export const OutputHandler = (status: number, req: Request, res: Response, next: NextFunction) => {
   if (res.headersSent) return;
   console.log(status)
-
+  
+  console.log( "the error is",res.error)
   const result = (res as any).result;
   const error = (res as any).error;
   const userAgent = req.headers["user-agent"] || "";
   const isMobile = /mobile|android|iphone/i.test(userAgent);
+  console.log(error)
+
 
   // Log error in development
   if ((process.env.NODE_ENV === "development" && error)) {
@@ -28,14 +31,14 @@ export const OutputHandler = (status: number, req: Request, res: Response, next:
       case 201:
         return { success: true, data, message: findMessage(data) };
       case 404:
-        return { success: false, error: formatError(errorData || "Resource not found.", isMobile) };
+        return { success: false, message:error};
       case 400:
       case 401:
       case 403:
       case 500:
-        return { success: false, error: formatError(errorData || data, isMobile) };
+        return { success: false, error };
       default:
-        return { success: false, error: formatError(errorData || "Something went wrong", isMobile) };
+        return { success: false, message:error };
     }
   };
 

@@ -149,21 +149,72 @@ export const createAchievement = async (
 /**
  * Controller to get all achievements.
  */
+// export const getAllAchievements = async (
+//   _req: AuthenticatedRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     const achievements = await achievementService.getAllAchievementsService();
+
+//     res.result =  achievements ;
+//     next(200);
+//   } catch (err) {
+    
+//     const message = err.message || "Error fetching achievements";
+//     const statusCode = err.statusCode || 500;
+    
+//     res.error = message;
+//     next(statusCode);
+//   }
+// };
+// export const getAllAchievements = async (
+//   req: AuthenticatedRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     // ✅ query se page & limit
+//     const page = Number(req.query.page) || 1;
+//     const limit = Number(req.query.limit) || 10;
+
+//     const result = await achievementService.getAllAchievementsService(
+//       page,
+//       limit
+//     );
+
+//     res.result = result;
+//     next(200);
+//   } catch (err: any) {
+//     const message = err.message || "Error fetching achievements";
+//     const statusCode = err.statusCode || 500;
+
+//     res.error = message;
+//     next(statusCode);
+//   }
+// };
 export const getAllAchievements = async (
-  _req: AuthenticatedRequest,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const achievements = await achievementService.getAllAchievementsService();
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const search = (req.query.search as string) || "";
 
-    res.result = { achievements };
+    const result = await achievementService.getAllAchievementsService(
+      page,
+      limit,
+      search
+    );
+
+    res.result = result;
     next(200);
-  } catch (err) {
-    
+  } catch (err: any) {
     const message = err.message || "Error fetching achievements";
     const statusCode = err.statusCode || 500;
-    
+
     res.error = message;
     next(statusCode);
   }
@@ -179,8 +230,9 @@ export const getAchievementById = async (
 ): Promise<void> => {
   try {
     const { employeeId } = req.params;
-
-    const result = await achievementService.getAchievementsByEmployeeService(employeeId);
+    const page= Number(req.query.page)
+    const limit= Number(req.query.limit)
+    const result = await achievementService.getAchievementsByEmployeeService(employeeId,page,limit);
 
     res.result = result; // Contains { totalAchievements, data }
     next(200);

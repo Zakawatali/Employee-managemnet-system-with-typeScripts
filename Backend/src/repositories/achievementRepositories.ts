@@ -15,11 +15,77 @@ export const createAchievement = async (achievementData: any): Promise<Achieveme
  * Finds all achievements, populating the user details.
  * @returns An array of Achievement documents.
  */
-export const findAllAchievements = async (): Promise<AchievementDocument[]> => {
-  return Achievement.find()
-    .populate("user", "firstName lastName email")
-    .exec();
+// export const findAllAchievements = async (): Promise<AchievementDocument[]> => {
+//   return Achievement.find()
+//     .populate("user", "firstName lastName email")
+//     .exec();
+// };
+// export const findAllAchievementsPaginated = async (
+//   skip: number,
+//   limit: number
+// ): Promise<AchievementDocument[]> => {
+//   return Achievement.find()
+//     .populate("user", "firstName lastName email")
+//     .skip(skip)
+//     .limit(limit)
+//     .exec();
+// };
+export const countAchievements = async (): Promise<number> => {
+  return Achievement.countDocuments();
 };
+export const findAllAchievementsPaginated = async (
+  skip: number,
+  limit: number,
+  search?: string
+): Promise<AchievementDocument[]> => {
+  const matchStage: any = {};
+
+  if (search && search.trim() !== "") {
+    matchStage.$or = [
+      { title: { $regex: search, $options: "i" } },
+      { "user.firstName": { $regex: search, $options: "i" } },
+      { "user.lastName": { $regex: search, $options: "i" } },
+    ];
+  }
+
+  const achievements = await Achievement.aggregate([
+    // Lookup user data
+    {
+      $lookup: {
+        from: "employeeprofiles", // MongoDB collection name of EmployeeProfile
+        localField: "user",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    { $unwind: "$user" }, // Flatten the user array
+    { $match: matchStage },
+    { $skip: skip },
+    { $limit: limit },
+    {
+      $project: {
+        title: 1,
+        body: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        user: {
+          _id: 1,
+          firstName: 1,
+          lastName: 1,
+          email: 1,
+        },
+      },
+    },
+  ]);
+
+  return achievements;
+};
+
+
+export const countAchievementsbyid = async (employeeId: string): Promise<number> => {
+  return Achievement.countDocuments({ user: employeeId });
+};
+
 
 /**
  * Finds all achievements associated with a specific user/employee ID.
@@ -27,10 +93,12 @@ export const findAllAchievements = async (): Promise<AchievementDocument[]> => {
  * @returns An array of Achievement documents.
  */
 export const findAchievementsByEmployeeId = async (
-  employeeId: string
+  employeeId: string,skip:number,limit:number
 ): Promise<AchievementDocument[]> => {
   return Achievement.find({ user: employeeId })
     .populate("user", "firstName lastName email")
+    .skip(skip)
+    .limit(limit)
     .exec();
 };
 

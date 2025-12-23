@@ -123,8 +123,15 @@ export const RegisterUserService = async (
   return { newUser };
 };
 
-export const GetAllUserService = async (): Promise<IUser[]> => {
-  return findAllUser();
+// export const GetAllUserService = async (page: number = 1, limit: number = 10) => {
+//   return findAllUser(page, limit);
+// };
+export const GetAllUserService = async (
+  page: number = 1,
+  limit: number = 10,
+  search: string = ""
+) => {
+  return findAllUser(page, limit, search);
 };
 
 export const ApproveUserServices = async (

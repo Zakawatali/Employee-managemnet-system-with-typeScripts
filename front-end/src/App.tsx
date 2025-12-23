@@ -7,6 +7,7 @@ import LoginPage from './pages/auth/login'
 import SignUpPage from './pages/auth/signup'
 import ForgotPassword from './pages/auth/ForgetPassword'
 import ResetPassword from './pages/auth/ResetPassword'
+import Layout from './components/Layout'
 
 // User Pages
 import UserDashboard from './pages/user/userDashboard'
@@ -45,6 +46,7 @@ function App() {
           <Route path="/forget-password" element={<ForgotPassword/>} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
 
+          <Route element={<Layout />}>
           {/* User Routes */}
           <Route path="/employee/dashboard" element={<UserDashboard />} />
           <Route path="/employee/attendance" element={<AttendancePage />} />
@@ -54,7 +56,8 @@ function App() {
           <Route path="/employee/document" element={<Document />} />
           <Route path='/employee/achievement' element={<Achievement/>}/>
           <Route path='/employee/reports' element={<Report/>} />
-
+          </Route>
+          <Route element={<Layout />}>
           {/* HR Routes */}
           <Route path="/hr/employee-approval" element={<EmployeeApprovalPage />} /> 
           <Route path='/hr/employee'  element={<Employee/>}/>
@@ -66,6 +69,7 @@ function App() {
           <Route path="/hr/tasks" element={<TaskAdmin />} />
           <Route path="/hr/HRdashboard" element={<HRDashboard />} />
           <Route path="/hr/Documents" element={<HRDocuments />} />
+          </Route>
           
 
           {/* Fallback route if nothing matches */}

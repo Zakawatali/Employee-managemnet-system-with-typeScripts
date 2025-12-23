@@ -215,6 +215,16 @@ interface Document {
   uploadedBy?: Employee;
   fileUrl?: string;
 }
+interface DocumentsResponse {
+  documents: Document[];
+  total: number;
+  totalPages: number;
+  page: number;
+}
+
+interface ApiResponse<T> {
+  data: T;
+}
 
 const Documents: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -223,17 +233,23 @@ const Documents: React.FC = () => {
   const [kind, setKind] = useState<string>("OTHER");
   const [loading, setLoading] = useState<boolean>(false);
   const { user } = useContext<{ user?: User }>(UserInfoContext);
+  const [page, setPage] = useState<number>(1);
+const [totalPages, setTotalPages] = useState<number>(1);
+const limit = 2;
 
   // ✅ Fetch documents
-  const fetchDocuments = async () => {
+  const fetchDocuments = async (page:number=1) => {
     const token = user?.token;
     if (!token) return;
 
     try {
-      const res = await axios.get<{ data: Document[] }>("/api/documents", {
+      const res = await axios.get<ApiResponse<DocumentsResponse>>(`/api/documents?page=${page}&limit=${limit}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setDocuments(res.data?.data || []);
+      console.log("all doc is",res.data.data)
+      setDocuments(res.data.data.documents|| []);
+      setPage(res.data.data.page)
+      setTotalPages(res.data.data.totalPages)
     } catch (err: any) {
       console.error(err);
       toast.error(err?.response?.data?.message || "Failed to fetch documents");
@@ -241,8 +257,8 @@ const Documents: React.FC = () => {
   };
 
   useEffect(() => {
-    if (user) fetchDocuments();
-  }, [user]);
+    if (user) fetchDocuments(page);
+  }, [user, page]);
 
   // ✅ Upload document
   const handleUpload = async (e: FormEvent<HTMLFormElement>) => {
@@ -324,7 +340,7 @@ const Documents: React.FC = () => {
   };
 
   return (
-    <Layout>
+  
       <div className="p-6 flex-1 overflow-auto space-y-6">
         <h1 className="text-3xl font-bold text-gray-800">📊 Reports</h1>
         <h2 className="text-gray-500 text-sm">View and download reports</h2>
@@ -381,8 +397,30 @@ const Documents: React.FC = () => {
             <p className="text-gray-500 py-6">No Reports found</p>
           )}
         </div>
+        <div className="flex justify-between items-center  gap-4 mt-4">
+  <button
+    disabled={page === 1}
+    onClick={() => setPage(prev => prev - 1)}
+    className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+  >
+    Previous
+  </button>
+
+  <span>
+    Page {page} of {totalPages}
+  </span>
+
+  <button
+    disabled={page === totalPages}
+    onClick={() => setPage(prev => prev + 1)}
+    className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+  >
+    Next
+  </button>
+</div>
+
       </div>
-    </Layout>
+    
   );
 };
 

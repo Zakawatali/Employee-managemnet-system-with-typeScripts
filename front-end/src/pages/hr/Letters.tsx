@@ -6,8 +6,8 @@ import Layout from '../../components/Layout';
 
 export default function Letter() {
   return (
-    <Layout>
+   
       <Letters/>
-    </Layout>
+    
   )
 }

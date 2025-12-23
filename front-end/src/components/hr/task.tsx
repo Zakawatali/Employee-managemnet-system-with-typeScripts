@@ -38,6 +38,10 @@ const TaskManagement = () => {
   const { user } = useContext(UserInfoContext) as { user: UserInfo };
 
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [page, setPage] = useState<number>(1);
+const [limit] = useState<number>(5); // per page tasks
+const [totalPages, setTotalPages] = useState<number>(1);
+
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -54,17 +58,24 @@ const TaskManagement = () => {
   // -------------------------------------
   // Fetch tasks
   // -------------------------------------
-  const fetchTasks = async () => {
+  const fetchTasks = async (currentPage = page) => {
     try {
       setLoading(true);
-      const res = await axios.get("/api/task/allTasks");
-      setTasks(res.data.data || []);
+  
+      const res = await axios.get(
+        `/api/task/allTasks?page=${currentPage}&limit=${limit}`
+      );
+  
+      setTasks(res.data.data.tasks);
+      setTotalPages(res.data.data.totalPages);
+  
     } catch (error: any) {
       toast.error(error?.response?.data?.message || error.message);
     } finally {
       setLoading(false);
     }
   };
+  
 
   // -------------------------------------
   // Fetch employees
@@ -79,9 +90,13 @@ const TaskManagement = () => {
   };
 
   useEffect(() => {
-    fetchTasks();
+    fetchTasks(page);
+  }, [page]);
+  
+  useEffect(() => {
     fetchEmployees();
   }, []);
+  
 
   // -------------------------------------
   // Create / Update task
@@ -128,10 +143,14 @@ const TaskManagement = () => {
       setShowForm(false);
 
       fetchTasks();
+      setPage(1);
+      fetchTasks(1);
     } catch (error: any) {
       toast.error(error?.response?.data?.message || error.message);
     }
   };
+ 
+
 
   // -------------------------------------
   // Edit Task
@@ -158,11 +177,14 @@ const TaskManagement = () => {
       await axios.delete(`/api/task/${id}`);
       setTasks((prev) => prev.filter((t) => t._id !== id));
       toast.success("Task deleted");
+      setPage(1);
+      fetchTasks(1);
     } catch (error: any) {
       toast.error(error?.response?.data?.message || error.message);
     }
   };
-
+ 
+  
   // -------------------------------------
   // Update status
   // -------------------------------------
@@ -400,6 +422,28 @@ const TaskManagement = () => {
           </div>
         )}
       </div>
+      <div className="flex justify-between items-center mt-4">
+  <button
+    disabled={page === 1}
+    onClick={() => setPage((p) => p - 1)}
+    className="px-4 py-2 border rounded disabled:opacity-50"
+  >
+    Previous
+  </button>
+
+  <span className="text-sm">
+    Page {page} of {totalPages}
+  </span>
+
+  <button
+    disabled={page === totalPages}
+    onClick={() => setPage((p) => p + 1)}
+    className="px-4 py-2 border rounded disabled:opacity-50"
+  >
+    Next
+  </button>
+</div>
+
     </div>
   );
 };

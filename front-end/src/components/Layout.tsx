@@ -1,8 +1,9 @@
 // src/layouts/UserLayout.jsx
 import React from "react";
 import SideBar from "./sideBar";
+import { Outlet } from "react-router-dom";
 
-export default function Layout({ children }) {
+export default function Layout() {
   return (
    
     <div className="flex-1  min-h-screen bg-gray-100">
@@ -11,7 +12,7 @@ export default function Layout({ children }) {
 
       {/* Main Content */}
         <main className="flex-1 p-4 md:ml-64 mt-12 md:mt-0">
-       {children}
+        <Outlet />
       </main>
     </div>
   );

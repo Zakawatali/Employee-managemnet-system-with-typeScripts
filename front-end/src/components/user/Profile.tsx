@@ -160,9 +160,7 @@ const Profile: React.FC = () => {
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-full md:w-64 bg-white shadow-md">
-        <Sidebar />
-      </div>
+      
 
       {/* Main Content */}
       <div className="flex-1 p-4 md:p-8 mt-12 md:mt-0 overflow-auto">

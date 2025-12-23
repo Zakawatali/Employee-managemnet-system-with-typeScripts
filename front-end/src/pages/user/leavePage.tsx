@@ -5,9 +5,9 @@ import LeaveRequests from '../../components/user/leave'
 
 function LeavePage() {
   return (
-   <Layout>
+  
    <LeaveRequests/>
-   </Layout>
+  
   )
 }
 

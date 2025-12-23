@@ -4,9 +4,9 @@ import Attendance from '../../components/user/attendance'
 
 function AttendancePage() {
   return (
-   <Layout>
+   
     <Attendance/>
-   </Layout>
+   
   )
 }
 

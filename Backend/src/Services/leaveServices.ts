@@ -86,9 +86,65 @@ export const deleteLeaveService = async (id: string): Promise<LeaveDocument> => 
 /**
  * Business logic to fetch all leave requests.
  */
-export const getAllLeavesService = async (): Promise<LeaveDocument[]> => {
-  // Persistence via Repository (with population handled in repo)
-  return leaveRepository.findAllLeaves();
+// services/leaveService.ts
+// export const getAllLeavesService = async (page: number, limit: number): Promise<{
+//   leaves: LeaveDocument[],
+//   count: number,
+//   page: number,
+//   limit: number,
+//   totalPages: number
+// }> => {
+//   const leaves = await leaveRepository.findAllLeaves(page, limit);
+
+//   const count = await leaveRepository.countLeaves() // Total leaves in DB
+//   const totalPages = Math.ceil(count / limit);
+
+//   return {
+//     leaves,
+//     count,
+//     page,
+//     limit,
+//     totalPages,
+//   };
+// };
+
+import { ApiError } from "../utils/ApiError";
+
+
+export const getAllLeavesService = async (
+  page?: number,
+  limit?: number,
+  search?: string,
+  leaveType?: string
+): Promise<{
+  leaves: LeaveDocument[];
+  count: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}> => {
+  try {
+    const leaves = await leaveRepository.findAllLeaves(page, limit, search, leaveType);
+    const count = await leaveRepository.countLeaves();
+    console.log("Total leave documents:", count);
+    
+    console.log("leave",leaves)
+    console.log("count",count)
+    if (!leaves.length) {
+      throw new ApiError("No leaves found", 404);
+    }
+
+    return {
+      leaves,
+      count,
+      page,
+      limit,
+      totalPages: Math.ceil(count / limit),
+    };
+  } catch (err: any) {
+    if (err instanceof ApiError) throw err;
+    throw new ApiError(err.message || "Error fetching leaves", 500);
+  }
 };
 
 /**

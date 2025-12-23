@@ -150,9 +150,12 @@ const Achievements: React.FC = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);           // current page
+const [totalPages, setTotalPages] = useState<number>(1);
+  const limit=2;
 
   // ✅ Fetch Achievements
-  const fetchAchievements = async () => {
+  const fetchAchievements = async (page:number=1) => {
     if (!user?._id) {
       setLoading(false);
       return;
@@ -162,9 +165,12 @@ const Achievements: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const res = await axios.get<{ data: { data: Achievement[] } }>(
-        `/api/achievements/${user._id}`
+      const res = await axios.get<{ data: { data: Achievement[],page: number; totalPages: number } }>(
+        `/api/achievements/${user._id}?page=${page}&limit=${limit}`
       );
+      console.log("the achivement is",res.data.data)
+      setPage(res.data.data.page)
+      setTotalPages(res.data.data.totalPages)
 
       const data = res.data?.data?.data || [];
       console.log("the response is", data);
@@ -180,7 +186,7 @@ const Achievements: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchAchievements();
+    fetchAchievements(page);
   }, [user?._id]);
 
   // ✅ Download Achievements as JSON
@@ -225,12 +231,12 @@ const Achievements: React.FC = () => {
             <div className="flex flex-col items-center justify-center text-red-500 py-16 bg-red-50 rounded-xl shadow-inner">
               <AlertCircle size={50} className="mb-4" />
               <p className="text-lg font-medium">{error}</p>
-              <button
-                onClick={fetchAchievements}
+              {/* <button
+                onClick={fetchAchievements()}
                 className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
               >
                 Retry
-              </button>
+              </button> */}
             </div>
           ) : achievements.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-gray-500 py-16 bg-gray-50 rounded-xl shadow-inner">
@@ -260,7 +266,35 @@ const Achievements: React.FC = () => {
               ))}
             </div>
           )}
+          
         </div>
+       <div className=" ">
+
+      
+<div className="flex justify-between items-center mt-4">
+  <button
+    disabled={page === 1}
+    onClick={() => fetchAchievements(page - 1)}
+    className="px-4 py-2 border rounded disabled:opacity-50"
+  >
+    Previous
+  </button>
+
+  <span className="text-sm">
+    Page {page} of {totalPages}
+  </span>
+
+  <button
+    disabled={page === totalPages}
+    onClick={() => fetchAchievements(page + 1)}
+    className="px-4 py-2 border rounded disabled:opacity-50"
+  >
+    Next
+  </button>
+</div>
+
+       </div>
+
       </div>
     
   );

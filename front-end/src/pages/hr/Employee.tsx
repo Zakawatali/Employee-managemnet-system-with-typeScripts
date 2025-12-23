@@ -6,8 +6,8 @@ import Layout from '../../components/Layout';
 
 export default function Employee() {
   return (
-    <Layout>
+   
       <Employees/>
-    </Layout>
+   
   )
 }

@@ -196,8 +196,12 @@ const Login: React.FC = () => {
       // Role-based navigation
       if (role === "HR") {
         navigate("/hr/HRdashboard");
-      } else {
+      } else if(role === "Employee") {
         navigate("/employee/dashboard");
+      }
+      else{
+        navigate("/login");
+
       }
 
     } catch (error: any) {

@@ -39,6 +39,32 @@ export const deleteEmployeeById = async (id: string): Promise<EmployeeProfileDoc
  * Finds all employee profiles in the database.
  * @returns An array of EmployeeProfile documents.
  */
-export const findAllEmployees = async (): Promise<EmployeeProfileDocument[]> => {
-  return EmployeeProfile.find().exec();
+// repositories/employee.repository.ts
+// export const findAllEmployees = async (
+//   skip: number,
+//   limit: number
+// ): Promise<EmployeeProfileDocument[]> => {
+//   return EmployeeProfile.find()
+//     .skip(skip)
+//     .limit(limit)
+//     .sort({ createdAt: -1 })
+//     .exec();
+// };
+
+// export const countEmployees = async (): Promise<number> => {
+//   return EmployeeProfile.countDocuments();
+// };
+export const findAllEmployees = async (
+  filter: any,
+  skip: number,
+  limit: number
+): Promise<EmployeeProfileDocument[]> => {
+  return EmployeeProfile.find(filter)
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 })
+    .exec();
+};
+export const countEmployees = async (filter: any = {}): Promise<number> => {
+  return EmployeeProfile.countDocuments(filter);
 };
