@@ -78,9 +78,16 @@ setTotalPages(data.totalPages);
         ? payload.leaves
         : [];
       setLeaves(list);
-    } catch (error) {
+    } catch (error:any) {
+      if (error?.response?.status === 404) {
+        setLeaves([]); // Empty state
+        setPage(1);
+        setTotalPages(1);
+      }
       console.error("Error fetching leaves:", error);
-      toast.error("Failed to fetch leaves");
+      toast.error(
+        error?.response?.data?.message || error?.response?.data?.error || error.message
+      );
     } finally {
       setLoading(false);
     }

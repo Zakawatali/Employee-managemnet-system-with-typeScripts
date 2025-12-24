@@ -34,6 +34,9 @@ const Tasks: React.FC = () => {
   const [page, setPage] = useState<number>(1);           // current page
 const [totalPages, setTotalPages] = useState<number>(1); // total pages from API
 const limit = 4; // items per page
+const [filterStatus, setFilterStatus] = useState<string>("");
+const [filterPriority, setFilterPriority] = useState<string>("");
+
 
   // ✅ Fetch tasks for logged-in employee
   // const fetchTasks = async () => {
@@ -49,29 +52,35 @@ const limit = 4; // items per page
   //     setLoading(false);
   //   }
   // };
-  const fetchTasks = async (currentPage = page) => {
+  const fetchTasks = async (
+    currentPage = page,
+    statusValue: string = filterStatus,
+    priorityValue: string = filterPriority
+  ) => {
     if (!user?._id) return;
-    try {
-      setLoading(true);
-      const res = await axios.get<{ data: { tasks: Task[]; page: number; totalPages: number } }>(
-        `/api/task/${user._id}?page=${currentPage}&limit=${limit}`
-      );
-      
+    setLoading(true);
   
+    const params: any = { page: currentPage, limit };
+    if (statusValue) params.status = statusValue;
+    if (priorityValue) params.priority = priorityValue;
+  
+    try {
+      const res = await axios.get(`/api/task/${user._id}`, { params });
       const data = res.data.data;
       setTasks(data.tasks);
       setPage(data.page);
       setTotalPages(data.totalPages);
-    } catch (err: any) {
-      console.error("Error fetching tasks:", err);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
   
+  
   useEffect(() => {
     fetchTasks(page);
-  }, [user?._id]);
+  }, [user?._id,page,filterStatus,filterPriority]);
   
 
   // ✅ Status badge helper
@@ -111,6 +120,37 @@ const limit = 4; // items per page
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-800">📋 My Tasks</h1>
         </div>
+        <div className="flex gap-4 mb-4">
+  <select
+    value={filterStatus}
+    onChange={(e) => { setFilterStatus(e.target.value); 
+      fetchTasks(1, e.target.value, filterPriority); // pass updated status
+
+    
+    }}
+    
+    className="border rounded px-2 py-1"
+  >
+    <option value="">All Status</option>
+    <option value="PENDING">PENDING</option>
+    <option value="IN_PROGRESS">IN_PROGRESS</option>
+    <option value="DONE">DONE</option>
+    <option value="BLOCKED">BLOCKED</option>
+    <option value="DELAYED">DELAYED</option>
+  </select>
+
+  <select
+    value={filterPriority}
+    onChange={(e) => { setFilterPriority(e.target.value); fetchTasks(1); }}
+    className="border rounded px-2 py-1"
+  >
+    <option value="">All Priority</option>
+    <option value="LOW">LOW</option>
+    <option value="MEDIUM">MEDIUM</option>
+    <option value="HIGH">HIGH</option>
+    <option value="CRITICAL">CRITICAL</option>
+  </select>
+</div>
 
         {/* Loading State */}
         {loading ? (

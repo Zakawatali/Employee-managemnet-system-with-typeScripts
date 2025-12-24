@@ -72,6 +72,28 @@ export const createTask = async (
 //     next(500);
 //   }
 // };
+// export const getAllTasks = async (
+//   req: AuthenticatedRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     const page = Number(req.query.page) || 1;
+//     const limit = Number(req.query.limit) || 10;
+
+//     const result = await getAllTaskService(page, limit);
+
+//     res.result = result;
+//     next(200);
+
+//   } catch (error) {
+//     const message =
+//       error instanceof Error ? error.message : "Error fetching tasks";
+
+//     res.error = message;
+//     next(500);
+//   }
+// };
 export const getAllTasks = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -80,12 +102,14 @@ export const getAllTasks = async (
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
+    const status = req.query.status as string | undefined;
+    const priority = req.query.priority as string | undefined;
+    const assignTo = req.query.assignTo as string | undefined; // New filter
 
-    const result = await getAllTaskService(page, limit);
+    const result = await getAllTaskService(page, limit, status, priority, assignTo);
 
     res.result = result;
     next(200);
-
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Error fetching tasks";
@@ -94,6 +118,7 @@ export const getAllTasks = async (
     next(500);
   }
 };
+
 
 // export const getTaskById = async (
 //   req: AuthenticatedRequest,
@@ -117,6 +142,35 @@ export const getAllTasks = async (
 //     next(500);
 //   }
 // };
+// export const getTaskById = async (
+//   req: AuthenticatedRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     const { id } = req.params;
+
+//     // pagination params
+//     const page = Number(req.query.page) || 1;
+//     const limit = Number(req.query.limit) || 10;
+
+//     const result = await getTaskByIdService(id, page, limit);
+
+//     if (!result.tasks.length) {
+//       res.error = "Task not found";
+//       next(404);
+//       return;
+//     }
+
+//     res.result = result;
+//     next(200);
+//   } catch (err) {
+//     const message = err instanceof Error ? err.message : "Error fetching task";
+//     res.error = message;
+//     next(500);
+//   }
+// };
+
 export const getTaskById = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -125,11 +179,16 @@ export const getTaskById = async (
   try {
     const { id } = req.params;
 
-    // pagination params
+    // Pagination
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
 
-    const result = await getTaskByIdService(id, page, limit);
+    // Filters
+    const status = req.query.status as string | undefined;
+    const priority = req.query.priority as string | undefined;
+
+    const result = await getTaskByIdService(id, page, limit, status, priority);
+    console.log("The result is",result)
 
     if (!result.tasks.length) {
       res.error = "Task not found";

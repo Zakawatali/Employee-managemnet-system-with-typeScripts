@@ -284,7 +284,7 @@ import { ApiError } from "../utils/ApiError";
 export const getAllLeaves = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 5;
     const search = (req.query.search as string) || "";
     const leaveType = (req.query.leaveType as string) || "";
 
@@ -295,6 +295,7 @@ export const getAllLeaves = async (req: Request, res: Response, next: NextFuncti
  
   } catch (err: any) {
     res.error = err.message || "Error fetching leaves";
+    console.log("the errr is",err.message )
     const statuscode = err.statusCode || 500;
     next(statuscode);
   }

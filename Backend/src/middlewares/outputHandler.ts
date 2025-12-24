@@ -9,7 +9,7 @@ export const OutputHandler = (status: number, req: Request, res: Response, next:
   const error = (res as any).error;
   const userAgent = req.headers["user-agent"] || "";
   const isMobile = /mobile|android|iphone/i.test(userAgent);
-  console.log(error)
+  
 
 
   // Log error in development
@@ -22,7 +22,7 @@ export const OutputHandler = (status: number, req: Request, res: Response, next:
     resultStatus = false;
     delete result.resultHasErrors;
   }
-
+ console.log("the real error in outputhandker is",error)
   // Prepare JSON response
   const prepareResponse = (status: number, resultStatus: boolean, data: any, errorData?: any) => {
     switch (status) {

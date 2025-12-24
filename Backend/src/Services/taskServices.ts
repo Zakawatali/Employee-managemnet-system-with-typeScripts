@@ -1,5 +1,9 @@
 import Task, { ITask, TaskPriority,TaskDocument} from "../models/Task";
 
+import { AuthenticatedRequest} from '../middlewares/authmiddlewares'; // Assuming this defines req.user structure
+import * as taskRepository from '../repositories/taskRepositories';
+
+
 import {
   CreatetaskRepo,
   getalltaskRepo,
@@ -36,11 +40,33 @@ export const CreatetaskService = async (
 // export const getAllTaskService = async (): Promise<ITask[]> => {
 //   return getalltaskRepo();
 // };
+// export const getAllTaskService = async (
+//   page: number,
+//   limit: number
+// ) => {
+//   const { tasks, total } = await getalltaskRepo(page, limit);
+
+//   const totalPages = Math.ceil(total / limit);
+
+//   return {
+//     tasks,
+//     page,
+//     limit,
+//     total,
+//     totalPages
+//   };
+// };
+// services/taskService.ts
+
+
 export const getAllTaskService = async (
   page: number,
-  limit: number
+  limit: number,
+  status?: string,
+  priority?: string,
+  assignTo?: string
 ) => {
-  const { tasks, total } = await getalltaskRepo(page, limit);
+  const { tasks, total } = await taskRepository.getalltaskRepo(page, limit, status, priority, assignTo);
 
   const totalPages = Math.ceil(total / limit);
 
@@ -49,9 +75,10 @@ export const getAllTaskService = async (
     page,
     limit,
     total,
-    totalPages
+    totalPages,
   };
 };
+
 
 // export const getTaskByIdService = async (id: string): Promise<ITask[]> => {
 //   return getTaskByIdRepo(id);
@@ -63,19 +90,29 @@ interface PaginatedTasks {
   totalPages: number;
 }
 
+// export const getTaskByIdService = async (
+//   id: string,
+//   page: number,
+//   limit: number
+// ): Promise<PaginatedTasks> => {
+//   return getTaskByIdRepo(id, page, limit);
+// };
+
+
 export const getTaskByIdService = async (
   id: string,
   page: number,
-  limit: number
+  limit: number,
+  status?: string,
+  priority?: string
 ): Promise<PaginatedTasks> => {
-  return getTaskByIdRepo(id, page, limit);
+  const resutl= await getTaskByIdRepo(id, page, limit, status, priority);
+ 
+  return resutl
 };
 
 // Update Task
 // Assuming types and imports
-
-import { AuthenticatedRequest} from '../middlewares/authmiddlewares'; // Assuming this defines req.user structure
-import * as taskRepository from '../repositories/taskRepositories';
 
 
 

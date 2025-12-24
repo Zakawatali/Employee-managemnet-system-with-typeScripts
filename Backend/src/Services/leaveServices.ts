@@ -130,6 +130,7 @@ export const getAllLeavesService = async (
     
     console.log("leave",leaves)
     console.log("count",count)
+   
     if (!leaves.length) {
       throw new ApiError("No leaves found", 404);
     }
@@ -184,7 +185,7 @@ export const updateLeaveStatusService = async (
   
   // Persistence via Repository
   const updatedLeave = await leaveRepository.saveLeave(leave);
-
+   
   // 3. Send Email (Business Rule)
   let emailStatus = "";
   if (newStatus === "APPROVED" || newStatus === "REJECTED") {

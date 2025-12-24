@@ -206,6 +206,34 @@ export const uploadDocument = async (
 //     next(statusCode);
 //   }
 // };
+// export const getAllDocuments = async (
+//   req: AuthenticatedRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     if (!req.user) {
+//       res.error = "Authentication required";
+//       next(401);
+//       return;
+//     }
+
+//     // Read pagination params from query
+//     const page = parseInt(req.query.page as string) || 1;
+//     const limit = parseInt(req.query.limit as string) || 10;
+
+//     const result = await documentService.getAllDocumentsService(req.user, page, limit);
+
+//     res.result = result;
+//     next(200);
+//   } catch (err) {
+//     const message = err.message || "Failed to fetch documents";
+//     const statusCode = err.statusCode || 500;
+
+//     res.error = message;
+//     next(statusCode);
+//   }
+// };
 export const getAllDocuments = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -218,15 +246,16 @@ export const getAllDocuments = async (
       return;
     }
 
-    // Read pagination params from query
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const search = (req.query.search as string) || "";
+    const typeFilter = (req.query.type as string) || "";
 
-    const result = await documentService.getAllDocumentsService(req.user, page, limit);
+    const result = await documentService.getAllDocumentsService(req.user, page, limit, search, typeFilter);
 
     res.result = result;
     next(200);
-  } catch (err) {
+  } catch (err: any) {
     const message = err.message || "Failed to fetch documents";
     const statusCode = err.statusCode || 500;
 

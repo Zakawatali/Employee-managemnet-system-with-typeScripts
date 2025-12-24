@@ -43,17 +43,33 @@ export const uploadDocumentService = async (
 //   // Note: We don't throw 404 if array is empty, as it's a valid result (no documents found).
 //   return documents;
 // };
+// export const getAllDocumentsService = async (
+//   user: AuthenticatedRequest['user'],
+//   page: number = 1,
+//   limit: number = 10
+// ): Promise<{ documents: DocumentDocument[]; total: number; totalPages: number; page: number }> => {
+//   const filter =
+//     user?.role !== "Admin" && user?.role !== "HR"
+//       ? { employee: user?._id }
+//       : {};
+
+//   const result = await documentRepository.findDocuments(filter, page, limit);
+
+//   return result;
+// };
 export const getAllDocumentsService = async (
   user: AuthenticatedRequest['user'],
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
+  search?: string,
+  typeFilter?: string
 ): Promise<{ documents: DocumentDocument[]; total: number; totalPages: number; page: number }> => {
   const filter =
     user?.role !== "Admin" && user?.role !== "HR"
       ? { employee: user?._id }
       : {};
 
-  const result = await documentRepository.findDocuments(filter, page, limit);
+  const result = await documentRepository.findDocuments(filter, page, limit, search, typeFilter);
 
   return result;
 };

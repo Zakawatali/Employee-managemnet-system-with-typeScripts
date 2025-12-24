@@ -52,22 +52,37 @@ const DocumentManagement: React.FC = () => {
   const [page, setPage] = useState(1);
    const [totalPages, setTotalPages] = useState(1);
   const limit = 5; // Items per page
+  const [search, setSearch] = useState(""); // for text search (name/kind)
+  // const [typeFilter, setTypeFilter] = useState(""); // for kind dropdown filter
+  
+  // // Fetch all documents
+  // const fetchDocuments = async (page:number=1) => {
+  //   try {
+  //     const res = await axios.get(`/api/documents?page=${page}&limit=${limit}`);
+  //     setDocuments(res.data.data.documents || []);
+  //     setTotalPages(res.data.data.totalPages || 1);
+  //      setPage(res.data.data.page || 1);
+  //      setTotalPages(res.data.data.totalPages || 1);
 
-  // Fetch all documents
-  const fetchDocuments = async (page:number=1) => {
+  //   } catch (error: any) {
+  //     toast.error("Failed to fetch documents");
+  //     console.error(error);
+  //   }
+  // };
+  const fetchDocuments = async (p: number = 1) => {
     try {
-      const res = await axios.get(`/api/documents?page=${page}&limit=${limit}`);
+      const res = await axios.get(
+        `/api/documents?page=${p}&limit=${limit}&search=${encodeURIComponent(search)}`
+      );
       setDocuments(res.data.data.documents || []);
       setTotalPages(res.data.data.totalPages || 1);
-       setPage(res.data.data.page || 1);
-       setTotalPages(res.data.data.totalPages || 1);
-
+      setPage(res.data.data.page || 1);
     } catch (error: any) {
       toast.error("Failed to fetch documents");
-      console.error(error);
     }
   };
-
+  
+  
   // Fetch employees
   const fetchEmployees = async () => {
     try {
@@ -78,7 +93,14 @@ const DocumentManagement: React.FC = () => {
       console.error(error);
     }
   };
-
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchDocuments(1);
+    }, 800);
+  
+    return () => clearTimeout(timer);
+  }, [search]);
+  
   useEffect(() => {
     fetchDocuments();
     fetchEmployees();
@@ -172,6 +194,16 @@ const DocumentManagement: React.FC = () => {
             <FiUpload /> Upload Report
           </button>
         </div>
+        <div className="flex gap-2 mb-4">
+  <input
+    type="text"
+    placeholder="Search by Employee Name or Kind"
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 flex-1"
+  />
+</div>
+
 
         {/* Upload Form Modal */}
         {showForm && (
@@ -355,22 +387,21 @@ const DocumentManagement: React.FC = () => {
         {totalPages > 1 && (
             <div className="flex justify-between items-center  mt-5">
               <button
-                disabled={page === 1}
-                onClick={() => fetchDocuments(page - 1)}
-                className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
-              >
-                Prev
-              </button>
-              <span>
-                Page {page} of {totalPages}
-              </span>
-              <button
-                disabled={page === totalPages}
-                onClick={() => fetchDocuments(page + 1)}
-                className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
-              >
-                Next
-              </button>
+  disabled={page === 1}
+  onClick={() => fetchDocuments(page - 1)}
+  className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+>
+  Prev
+</button>
+<span> {page} of {totalPages}</span>
+<button
+  disabled={page === totalPages}
+  onClick={() => fetchDocuments(page + 1)}
+  className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+>
+  Next
+</button>
+
             </div>
           )}
       </div>

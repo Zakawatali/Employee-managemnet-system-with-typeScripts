@@ -26,27 +26,101 @@ export const createDocument = async (docData: any): Promise<DocumentDocument> =>
 //     .sort({ createdAt: -1 })
 //     .exec();
 // };
+// export const findDocuments = async (
+//   filter: any,
+//   page: number = 1,
+//   limit: number = 10
+// ): Promise<{ documents: DocumentDocument[]; total: number; totalPages: number; page: number }> => {
+//   const skip = (page - 1) * limit;
+
+//   const [documents, total] = await Promise.all([
+//     Document.find(filter)
+//       .populate("employee uploadedBy", "firstName lastName email")
+//       .sort({ createdAt: -1 })
+//       .skip(skip)
+//       .limit(limit)
+//       .exec(),
+//     Document.countDocuments(filter),
+//   ]);
+
+//   const totalPages = Math.ceil(total / limit);
+
+//   return { documents, total, totalPages, page };
+// };
 export const findDocuments = async (
   filter: any,
   page: number = 1,
-  limit: number = 10
-): Promise<{ documents: DocumentDocument[]; total: number; totalPages: number; page: number }> => {
+  limit: number = 10,
+  search?: string,
+  typeFilter?: string
+): Promise<{ documents: any[]; total: number; totalPages: number; page: number }> => {
   const skip = (page - 1) * limit;
 
-  const [documents, total] = await Promise.all([
-    Document.find(filter)
-      .populate("employee uploadedBy", "firstName lastName email")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .exec(),
-    Document.countDocuments(filter),
-  ]);
+  const matchStage: any = { ...filter };
+
+  // Add type filter
+  if (typeFilter && typeFilter.trim() !== "") {
+    matchStage.type = typeFilter;
+  }
+
+  const aggregatePipeline: any[] = [
+    { $match: matchStage },
+
+    // Lookup employee details
+    {
+      $lookup: {
+        from: "employeeprofiles", // collection name
+        localField: "employee",
+        foreignField: "_id",
+        as: "employee",
+      },
+    },
+    { $unwind: "$employee" },
+  ];
+
+  if (search && search.trim() !== "") {
+    const searchRegex = { $regex: search.trim(), $options: "i" };
+  
+    aggregatePipeline.push({
+      $match: {
+        $or: [
+          { "employee.firstName": searchRegex },
+          { "employee.lastName": searchRegex },
+          { kind: searchRegex }, // <-- searches in kind enum
+        ],
+      },
+    });
+  }
+
+  // Count total documents after search & filter
+  const totalAgg = await Document.aggregate([...aggregatePipeline, { $count: "total" }]);
+  const total = totalAgg[0]?.total || 0;
+
+  // Add skip & limit for pagination
+  aggregatePipeline.push({ $sort: { createdAt: -1 } });
+  aggregatePipeline.push({ $skip: skip });
+  aggregatePipeline.push({ $limit: limit });
+
+  // Project only necessary fields
+  aggregatePipeline.push({
+    $project: {
+      title: 1,
+      type: 1,
+      kind:1,
+      createdAt: 1,
+      updatedAt: 1,
+      employee: { _id: 1, firstName: 1, lastName: 1, email: 1 },
+      uploadedBy: 1,
+    },
+  });
+
+  const documents = await Document.aggregate(aggregatePipeline);
 
   const totalPages = Math.ceil(total / limit);
 
   return { documents, total, totalPages, page };
 };
+
 
 /**
  * Finds a single document by ID, populating related fields.
