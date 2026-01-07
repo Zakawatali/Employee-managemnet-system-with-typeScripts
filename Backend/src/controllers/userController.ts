@@ -9,6 +9,11 @@ import {
   ForgetPasswordServices,
   ResetPasswordService,
 } from "../Services/userServices";
+import { error } from "console";
+import { LoginDto , RegisterUserDto , ForgetPasswordDto , ResetPasswordDto } from "../dtos/authDtos";
+import { ERROR_MESSAGES } from "../constants/errorMessages";
+import { SUCCESS_MESSAGES } from "../constants/successMessages";
+
 
 // Fixed registerUser controller
 export const registerUser = async (
@@ -17,7 +22,7 @@ export const registerUser = async (
   next: NextFunction
 ): Promise<void> => {
 
- 
+ const registerUserDto: RegisterUserDto = req.body;
   try {
     const {
       firstName,
@@ -31,9 +36,7 @@ export const registerUser = async (
       position,
       experience,
       education,
-      role,
-      status,
-    } = req.body;
+    } = registerUserDto;
 
     // Get the uploaded image path from multer
     const imagePath = req.file ? `/uploads/${req.file.filename}` : undefined;
@@ -64,31 +67,42 @@ export const registerUser = async (
       experience,
       education,
       image: imagePath, // Pass the file path instead
-      role,
-      status,
+      
     });
 
     res.result=newUser;
     next(201);
     
   } catch (err: any) {
-    console.error("Registration error:", err);
+    const message = err instanceof Error ? err.message : "Error updating task";
     
-    res.error=err;
-    next(500);
+    // Safely determine the status code for known application errors
+    const statusCode = err instanceof Error && 'statusCode' in err && typeof err.statusCode === 'number'
+        ? err.statusCode
+        : 500;
+    res.error = message;
+    next(statusCode);
   }
 };
 
 
 export const loginUser = async ( req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const loginDto: LoginDto = req.body;
+    const { email, password } = loginDto;
     const result = await LoginUserService(email, password);
      res.result = result;
     next(200); 
   } catch (err) {
-    res.error = err;
-    next(500);
+    const message = err instanceof Error ? err.message :"error in login user";
+    
+    // Safely determine the status code for known application errors
+    const statusCode = err instanceof Error && 'statusCode' in err && typeof err.statusCode === 'number'
+        ? err.statusCode
+        : 500;
+     
+    res.error = message;
+    next(statusCode); 
   }
 };
 
@@ -167,14 +181,16 @@ export const forgetPassword = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email } = req.body;
+    const forgetPasswordDto: ForgetPasswordDto = req.body;
+    const { email } = forgetPasswordDto;
     const  user = await ForgetPasswordServices(email);
     res.result =  user;
     next(200);
 
-  } catch (err) {
-    res.error = err;
-    next(500);
+  } catch (err: any) {
+    res.error = err.message || "Failed to process forget password request";
+    const statusCode = err.statusCode || 500;
+    next(statusCode);
   }
 };
 
@@ -185,15 +201,17 @@ export const resetPassword = async (
 ): Promise<void> => {
   try {
     const { token } = req.params;
-    const { newPassword } = req.body;
+    const resetPasswordDto: ResetPasswordDto = req.body;
+    const { newPassword } = resetPasswordDto;
 
     
 
     const  Emp = await ResetPasswordService(newPassword, token);
     res.result = Emp;
     next(200);
-  } catch (err) {
-    res.error = err;
-    next(500);
+  } catch (err: any) {
+    res.error = err.message || "Failed to reset password";
+    const statusCode = err.statusCode || 500;
+    next(statusCode);
   }
 };

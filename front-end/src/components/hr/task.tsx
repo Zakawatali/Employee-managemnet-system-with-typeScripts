@@ -483,6 +483,15 @@ interface UserInfo {
   email: string;
   role: string;
 }
+interface TaskFormErrors {
+  title?: string;
+  description?: string;
+  dueDate?: string;
+  assignTo?: string;
+}
+
+
+
 
 // -------------------------------------
 // Component
@@ -512,6 +521,7 @@ const TaskManagement = () => {
   const [priority, setPriority] = useState<Task["priority"]>("LOW");
   const [dueDate, setDueDate] = useState<string>("");
   const [assignTo, setAssignTo] = useState<string>("");
+  const [formErrors, setFormErrors] = useState<TaskFormErrors>({});
 
   // -------------------------------------
   // Fetch tasks with filters
@@ -575,10 +585,7 @@ const TaskManagement = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!title || !description || !priority || !dueDate || !assignTo) {
-      toast.error("All fields are required!");
-      return;
-    }
+    
 
     try {
       if (editTask) {
@@ -616,8 +623,27 @@ const TaskManagement = () => {
       fetchTasks(1);
       setPage(1);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || error.message);
+      console.log("the error on frontend is", error);
+    
+      const data = error?.response?.data?.message;
+    
+      const newErrors: TaskFormErrors = {};
+    
+      if (data?.errors?.length) {
+        data.errors.forEach((e: any) => {
+          if (e.field) {
+            newErrors[e.field as keyof TaskFormErrors] = e.message;
+          }
+        });
+      } 
+      
+      else   {
+        toast.error(error?.response?.data?.message) // fallback global error
+      }
+    
+      setFormErrors(newErrors);
     }
+    
   };
 
   // -------------------------------------
@@ -714,17 +740,17 @@ const TaskManagement = () => {
         </select>
 
         {/* Employee Filter as Input */}
-<div>
-<input
-  type="text"
-  placeholder="Filter by employee name"
-  onChange={(e) => debouncedAssignToChange(e.target.value)}
-  className="border rounded px-2 py-1"
-/>
+              <div>
+              <input
+                type="text"
+                placeholder="Filter by employee name"
+                onChange={(e) => debouncedAssignToChange(e.target.value)}
+                className="border rounded px-2 py-1"
+              />
 
-</div>
+              </div>
 
-      </div>
+                    </div>
 
       {/* Modal Form */}
       {showForm && (
@@ -736,71 +762,78 @@ const TaskManagement = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Title */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                />
-              </div>
+<div>
+  <label className="block text-sm font-medium mb-1">Title</label>
+  <input
+    type="text"
+    value={title}
+    onChange={(e) => {
+      setTitle(e.target.value);
+      setFormErrors((prev) => ({ ...prev, title: undefined })); // clear error on change
+    }}
+    className="w-full border rounded-md px-3 py-2 text-sm"
+  />
+  {formErrors.title && (
+    <p className="text-red-500 text-sm mt-1">{formErrors.title}</p>
+  )}
+</div>
 
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                ></textarea>
-              </div>
+{/* Description */}
+<div>
+  <label className="block text-sm font-medium mb-1">Description</label>
+  <textarea
+    value={description}
+    onChange={(e) => {
+      setDescription(e.target.value);
+      setFormErrors((prev) => ({ ...prev, description: undefined }));
+    }}
+    className="w-full border rounded-md px-3 py-2 text-sm"
+  />
+  {formErrors.description && (
+    <p className="text-red-500 text-sm mt-1">{formErrors.description}</p>
+  )}
+</div>
 
-              {/* Priority */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Priority</label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as Task["priority"])}
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                >
-                  <option value="LOW">LOW</option>
-                  <option value="MEDIUM">MEDIUM</option>
-                  <option value="HIGH">HIGH</option>
-                  <option value="CRITICAL">CRITICAL</option>
-                </select>
-              </div>
+{/* Due Date */}
+<div>
+  <label className="block text-sm font-medium mb-1">Due Date</label>
+  <input
+    type="date"
+    value={dueDate}
+    onChange={(e) => {
+      setDueDate(e.target.value);
+      setFormErrors((prev) => ({ ...prev, dueDate: undefined }));
+    }}
+    className="w-full border rounded-md px-3 py-2 text-sm"
+  />
+  {formErrors.dueDate && (
+    <p className="text-red-500 text-sm mt-1">{formErrors.dueDate}</p>
+  )}
+</div>
 
-              {/* Date + Assign */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Due Date</label>
-                  <input
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full border rounded-md px-3 py-2 text-sm"
-                  />
-                </div>
+{/* Assign To */}
+<div>
+  <label className="block text-sm font-medium mb-1">Assign To</label>
+  <select
+    value={assignTo}
+    onChange={(e) => {
+      setAssignTo(e.target.value);
+      setFormErrors((prev) => ({ ...prev, assignTo: undefined }));
+    }}
+    className="w-full border rounded-md px-3 py-2 text-sm"
+  >
+    <option value="">Select Employee</option>
+    {employees.map((emp) => (
+      <option key={emp._id} value={emp._id}>
+        {emp.firstName} {emp.lastName} ({emp.email})
+      </option>
+    ))}
+  </select>
+  {formErrors.assignTo && (
+    <p className="text-red-500 text-sm mt-1">{formErrors.assignTo}</p>
+  )}
+</div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Assign To (Employee)
-                  </label>
-                  <select
-                    value={assignTo}
-                    onChange={(e) => setAssignTo(e.target.value)}
-                    className="w-full border rounded-md px-3 py-2 text-sm"
-                  >
-                    <option value="">Select Employee</option>
-                    {employees.map((emp) => (
-                      <option key={emp._id} value={emp._id}>
-                        {emp.firstName} {emp.lastName} ({emp.email})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
 
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">

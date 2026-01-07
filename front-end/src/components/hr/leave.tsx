@@ -2,6 +2,8 @@
 
 
 import React, { useEffect, useState, useMemo } from "react";
+import { Loader2 } from "lucide-react";
+
 import {
   FileText,
   CheckCircle,
@@ -16,6 +18,17 @@ import { debounce } from "../../util/debounce";
 
 type LeaveStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
 type LeaveAction = "Approved" | "Rejected";
+type LoadingAction = {
+  id: string;
+  action: "Approved" | "Rejected"|"Deleted";
+} | null;
+
+
+
+
+
+
+
 
 interface EmployeeInfo {
   firstName?: string;
@@ -50,6 +63,10 @@ const [leaveTypeInput, setLeaveTypeInput] = useState("");
 
  const [search, setSearch] = useState("");
  const [leaveType, setLeaveType] = useState("");
+ 
+ const [loadingAction, setLoadingAction] = useState<LoadingAction>(null);
+ 
+
 
 
 
@@ -95,6 +112,7 @@ setTotalPages(data.totalPages);
 
   const deleteLeave = async (id: string) => {
     try {
+      setLoadingAction({ id, action: "Deleted" });
       const res = await axios.delete(`/api/leaves/${id}`);
       
       if (res.data.success) {
@@ -107,6 +125,9 @@ setTotalPages(data.totalPages);
       const err = error as { response?: { data?: { message?: string } } };
       toast.error(err?.response?.data?.message || "Error deleting leave");
       console.error("Error deleting leave:", error);
+    }
+    finally{
+      setLoadingAction(null)
     }
   };
   
@@ -134,8 +155,10 @@ useEffect(() => {
   // ✅ Update leave status
   const updateStatus = async (id: string, status: "Approved" | "Rejected") => {
     try {
+      setLoadingAction({id, action: status})
       if (status === "Approved") {
         await axios.put(`/api/leaves/approve/${id}`);
+        
       } else if (status === "Rejected") {
         await axios.put(`/api/leaves/reject/${id}`);
       }
@@ -148,6 +171,9 @@ useEffect(() => {
     } catch (error: any) {
       console.error("Error updating status:", error);
       toast.error(error.response?.data?.message || "Error updating status");
+    }
+    finally{
+      setLoadingAction(null );
     }
   };
 
@@ -302,25 +328,48 @@ useEffect(() => {
                         <Eye size={14} /> View
                       </button>
                       <button
-                        onClick={() => updateStatus(leave._id, "Approved")}
-                        disabled={leave.status === "APPROVED"}
-                        className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => updateStatus(leave._id, "Rejected")}
-                        disabled={leave.status === "REJECTED"}
-                        className="px-3 py-1 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-                      >
-                        Reject
-                      </button>
-                      <button
-                        onClick={() => deleteLeave(leave._id)}
-                        className="px-3 py-1 text-sm bg-gray-700 text-white rounded-lg hover:bg-gray-800"
-                      >
-                        Delete
-                      </button>
+                          onClick={() => updateStatus(leave._id, "Approved")}
+                           disabled={
+                            leave.status === "APPROVED" ||
+                            (loadingAction?.id === leave._id &&
+                              loadingAction?.action === "Approved")
+                              }
+                                className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                             >
+                            {loadingAction?.id === leave._id &&
+                             loadingAction?.action === "Approved" ? (
+                            <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                             Approving...
+                              </>) : ( "Approve")}
+
+                               </button>
+
+                           <button
+                             onClick={() => updateStatus(leave._id, "Rejected")}
+                              disabled={
+                                leave.status === "REJECTED" ||
+                                (loadingAction?.id === leave._id &&
+                                  loadingAction?.action === "Rejected")
+                                       }
+                                 className="px-3 py-1 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+                                >
+                          {loadingAction?.id === leave._id &&
+                           loadingAction?.action === "Rejected"? (
+                            <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                             Rejecting...
+                              </>) : ( "Reject")}
+                           </button>
+
+                           <button
+                               onClick={() => deleteLeave(leave._id)}
+                               disabled={loadingAction?.id === leave._id}
+                                className="px-3 py-1 text-sm bg-gray-700 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                               >
+                                {loadingAction?.id === leave._id &&
+                                 loadingAction?.action === "Deleted" ? ("Deleting...") : ("Delete")}</button>
+
                     </td>
                   </tr>
                 ))}

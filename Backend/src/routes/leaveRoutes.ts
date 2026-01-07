@@ -9,10 +9,12 @@ import {
   deleteLeave,
 } from "../controllers/leaveController";
 import { protect, authorizeRoles } from "../middlewares/authmiddlewares";
+import {leaveRequestSchema} from "../validations/leaveValidation"
+import {validateRequest} from "../middlewares/validateRequest"
 
 const router = Router();
 
-router.post("/applyLeave", protect, applyLeave);
+router.post("/applyLeave", protect,validateRequest(leaveRequestSchema), applyLeave);
 router.get("/", protect, getAllLeaves);
  router.get("/:employeeId", protect, getLeaveByEmployeeId);
 router.put(

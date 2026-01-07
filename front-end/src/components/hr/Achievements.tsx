@@ -25,6 +25,13 @@ interface FormData {
   body: string;
   user: string;
 }
+interface FormErrors {
+  title?: string;
+  body?: string;
+  user?: string;
+}
+
+
 
 export default function Achievements() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -38,6 +45,7 @@ export default function Achievements() {
 const [limit] = useState<number>(3);
 const [totalPages, setTotalPages] = useState<number>(1);
 const [search, setSearch] = useState<string>("");
+const [errors, setErrors] = useState<FormErrors>({});
 
 
 
@@ -93,14 +101,14 @@ const [search, setSearch] = useState<string>("");
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+     // 🔥 clear error of this field
+  setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title.trim()) return toast.error("Please enter an achievement title.");
-    if (!formData.body.trim()) return toast.error("Please enter an achievement description.");
-    if (!formData.user) return toast.error("Please select an employee to assign this achievement.");
+   
 
     try {
       setSubmitting(true);
@@ -114,11 +122,27 @@ const [search, setSearch] = useState<string>("");
       }
 
       setFormData({ title: "", body: "", user: "" });
+      setErrors({});
       setEditing(null);
       setShowForm(false);
       await fetchAll();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || error.message || "Operation failed");
+      const apiError = error?.response?.data?.message;
+
+  if (apiError?.errors && Array.isArray(apiError.errors)) {
+    const newErrors: FormErrors = {};
+
+    apiError.errors.forEach((e: any) => {
+      if (e.field) {
+        newErrors[e.field as keyof FormErrors] = e.message;
+      }
+    });
+    setErrors(newErrors);
+    
+  } else {
+    toast.error(error?.response?.data?.message || error.message || "Operation failed");
+  }
+  
     } finally {
       setSubmitting(false);
     }
@@ -131,6 +155,7 @@ const [search, setSearch] = useState<string>("");
       const res = await axios.delete(`/api/achievements/${id}`);
       toast.success(res.data?.message || "Achievement deleted successfully");
       await fetchAll();
+      
     } catch (error: any) {
       toast.error(error?.response?.data?.message || error.message || "Failed to delete achievement");
     }
@@ -186,15 +211,15 @@ const [search, setSearch] = useState<string>("");
           </button>
         </div>
         
-        <div className="flex gap-2 mb-4">
-  <input
-    type="text"
-    placeholder="Search by title or employee name..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    className="flex-1 border px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-  />
-</div>
+                    <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                placeholder="Search by title or employee name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="flex-1 border px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+            </div>
 
         {employees.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
@@ -233,15 +258,18 @@ const [search, setSearch] = useState<string>("");
                     Achievement Title *
                   </label>
                   <input
-                    type="text"
-                    name="title"
-                    placeholder="e.g., Employee of the Month"
-                    value={formData.title}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                    required
-                    disabled={submitting}
-                  />
+                         type="text"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleChange}
+                          className={`w-full border px-4 py-2 rounded-lg ${
+                            errors.title ? "border-red-500" : "border-gray-300"
+                          }`}
+                            />
+                             {errors.title && (
+                                <p className="text-red-500 text-xs mt-1">{errors.title}</p>
+                              )}
+
                 </div>
 
                 <div>
@@ -249,15 +277,18 @@ const [search, setSearch] = useState<string>("");
                     Description *
                   </label>
                   <textarea
-                    name="body"
-                    placeholder="Describe the achievement and why it was earned..."
-                    value={formData.body}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
-                    rows={4}
-                    required
-                    disabled={submitting}
-                  />
+                          name="body"
+                          value={formData.body}
+                          onChange={handleChange}
+                          className={`w-full border px-4 py-2 rounded-lg ${
+                            errors.body ? "border-red-500" : "border-gray-300"
+                          }`}
+                        />
+
+                        {errors.body && (
+                          <p className="text-red-500 text-xs mt-1">{errors.body}</p>
+                        )}
+
                 </div>
 
                 <div>
@@ -267,11 +298,15 @@ const [search, setSearch] = useState<string>("");
                   <select
                     name="user"
                     value={formData.user}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                    required
-                    disabled={submitting}
-                  >
+                         onChange={handleChange}
+                         className={`w-full border px-4 py-2 rounded-lg ${
+                            errors.user ? "border-red-500" : "border-gray-300"
+                                             }`}
+>                                {errors.user && (
+                      <p className="text-red-500 text-xs mt-1">{errors.user}</p>
+                                 )}
+
+
                     <option value="">-- Select an employee --</option>
                     {employees.map((emp) => (
                       <option key={emp._id} value={emp._id}>
@@ -279,6 +314,9 @@ const [search, setSearch] = useState<string>("");
                       </option>
                     ))}
                   </select>
+                  {errors.user && (
+                    <p className="text-red-500 text-xs mt-1">{errors.user}</p>
+                     )}
                 </div>
 
                 <div className="flex gap-3 pt-4">

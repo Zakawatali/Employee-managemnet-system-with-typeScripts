@@ -120,11 +120,16 @@ const ResetPassword: React.FC = () => {
       const res = await axios.post<ResetPasswordResponse>(`api/users/reset-password/${token}`, {
         newPassword: password,
       });
-
+      
       toast.success(res.data.message || "Password reset successfully");
       navigate("/login");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to reset password");
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to reset password");
+      }
+      
     }
   };
 

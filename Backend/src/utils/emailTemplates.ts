@@ -38,4 +38,71 @@ export const emailTemplates = {
     <p>Your leave request from <b>${new Date(leave.startDate).toDateString()}</b> to <b>${new Date(leave.endDate).toDateString()}</b> has been rejected.</p>
 
   `,
+  resetPasswordEmailTemplate : (firstName: string, token: string):string => `
+  <div style="font-family: Arial, sans-serif; background-color: #f6f9fc; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background: white; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 30px;">
+      <h2 style="color: #333; text-align: center;">🔒 Password Reset Request</h2>
+      <p style="font-size: 15px; color: #555;">
+        Hi ${firstName || "there"},<br><br>
+        We received a request to reset your password for your EMS account.
+        Click the button below to choose a new password:
+      </p>
+  
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="http://localhost:5173/reset-password/${token}" 
+           style="background-color: #007bff; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block;">
+           Reset Password
+        </a>
+      </div>
+  
+      <p style="font-size: 14px; color: #555;">
+        This link will expire in <b>10 minutes</b> for your security.
+      </p>
+      <p style="font-size: 13px; color: #777;">
+        If you didn’t request a password reset, you can safely ignore this email.
+      </p>
+  
+      <hr style="margin: 25px 0; border: none; border-top: 1px solid #eee;">
+      <p style="font-size: 12px; color: #888; text-align: center;">
+        © ${new Date().getFullYear()} DevRolin EMS System. All rights reserved.
+      </p>
+    </div>
+  </div>
+  `
+  
+  
+
 };
+
+// export const resetPasswordEmailTemplate = (firstName: string, token: string) => `
+// <div style="font-family: Arial, sans-serif; background-color: #f6f9fc; padding: 40px;">
+//   <div style="max-width: 600px; margin: auto; background: white; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 30px;">
+//     <h2 style="color: #333; text-align: center;">🔒 Password Reset Request</h2>
+//     <p style="font-size: 15px; color: #555;">
+//       Hi ${firstName || "there"},<br><br>
+//       We received a request to reset your password for your EMS account.
+//       Click the button below to choose a new password:
+//     </p>
+
+//     <div style="text-align: center; margin: 30px 0;">
+//       <a href="http://localhost:5173/reset-password/${token}" 
+//          style="background-color: #007bff; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block;">
+//          Reset Password
+//       </a>
+//     </div>
+
+//     <p style="font-size: 14px; color: #555;">
+//       This link will expire in <b>10 minutes</b> for your security.
+//     </p>
+//     <p style="font-size: 13px; color: #777;">
+//       If you didn’t request a password reset, you can safely ignore this email.
+//     </p>
+
+//     <hr style="margin: 25px 0; border: none; border-top: 1px solid #eee;">
+//     <p style="font-size: 12px; color: #888; text-align: center;">
+//       © ${new Date().getFullYear()} DevRolin EMS System. All rights reserved.
+//     </p>
+//   </div>
+// </div>
+// `;
+

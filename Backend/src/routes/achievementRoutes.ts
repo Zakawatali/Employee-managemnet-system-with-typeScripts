@@ -6,11 +6,13 @@ import {
   updateAchievement,
   deleteAchievement,
 } from "../controllers/achievementController";
+import {createAchievementSchema } from "../validations/achievementValidation"
+import {validateRequest} from "../middlewares/validateRequest"
 import { protect, authorizeRoles } from "../middlewares/authmiddlewares";
 
 const router = Router();
 
-router.post("/", protect, authorizeRoles("Admin", "HR"), createAchievement);
+router.post("/", protect, authorizeRoles("Admin", "HR"),validateRequest(createAchievementSchema), createAchievement);
 router.get("/", protect, getAllAchievements);
 router.get("/:employeeId", protect, getAchievementById);
 router.put("/:id", protect, authorizeRoles("Admin", "HR"), updateAchievement);

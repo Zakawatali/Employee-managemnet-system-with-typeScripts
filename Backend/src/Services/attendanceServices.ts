@@ -1,7 +1,9 @@
 import * as attendanceRepository from "../repositories/attendanceRepositories";
 import { AttendanceDocument } from "../models/Attendance";
 import { Types } from "mongoose";
-
+import {ERROR_MESSAGES} from "../constants/errorMessages"
+import {SUCCESS_MESSAGES } from "../constants/successMessages"
+import { ApiError } from "../utils/ApiError";
 // Helper function moved from controller to service layer (business logic)
 const startOfDay = (date: Date): Date => {
   const normalized = new Date(date);
@@ -23,7 +25,7 @@ export const checkInService = async (employeeId: string): Promise<AttendanceDocu
   let attendance = await attendanceRepository.findTodayAttendance(employeeId, dateOnly);
 
   if (attendance && attendance.checkIn) {
-    throw new Error("Already checked in today")
+    throw new ApiError(ERROR_MESSAGES.USER_ALREADY_CHECKIN,401)
     return;
   }
 
@@ -52,12 +54,12 @@ export const checkOutService = async (employeeId: string): Promise<AttendanceDoc
   const attendance = await attendanceRepository.findTodayAttendance(employeeId, today);
 
   if (!attendance || !attendance.checkIn) {
-    throw new Error("Cannot check out without check-in");
+    throw new ApiError("Cannot check out without check-in",401);
     return;
   }
 
   if (attendance.checkOut) {
-    throw new Error("Already checked out today");
+    throw new ApiError(ERROR_MESSAGES.USER_ALREADY_CHECKOUT,401);
     return;
   }
 
@@ -78,7 +80,7 @@ export const updateAttendanceService = async (
   const updatedAttendance = await attendanceRepository.updateAttendanceRecord(id, updateData);
 
   if (!updatedAttendance) {
-    throw new Error("Attendance not found");
+    throw new ApiError(ERROR_MESSAGES.ATTENDANCE_NOT_FOUND,404);
     return;
   }
 
@@ -92,7 +94,7 @@ export const deleteAttendanceService = async (id: string): Promise<AttendanceDoc
   const deletedAttendance = await attendanceRepository.deleteAttendanceRecord(id);
 
   if (!deletedAttendance) {
-    throw new Error("Attendance not found");
+    throw new ApiError(ERROR_MESSAGES.ATTENDANCE_NOT_FOUND,404);
     return;
   }
 
@@ -122,16 +124,11 @@ export const getAttendanceByEmployeeIdService = async (
   percentage: string;
   records: AttendanceDocument[];
 }> => {
-  // Input validation (optional, but good practice if not checked in controller)
-  if (!employeeId) {
-    throw new Error("Employee ID is required");
-    return;
-  }
 
   const attendance = await attendanceRepository.findAttendanceByEmployeeId(employeeId);
 
   if (!attendance || attendance.length === 0) {
-    throw new Error("No attendance record found for this employee");
+    throw new ApiError(ERROR_MESSAGES.ATTENDANCE_NOT_FOUND,404);
     return;
   }
 
@@ -191,16 +188,13 @@ export const getMonthlySummaryService = async (
     yearStr: string,
     monthStr: string
   ): Promise<{ employeeId: string; month: number; year: number; summary: Record<string, number> }> => {
-    if (!employeeId || !yearStr || !monthStr) {
-      throw new Error("employeeId, year, and month are required");
-      return;
-    }
+  
   
     const yearNum = parseInt(yearStr, 10);
     const monthNum = parseInt(monthStr, 10); // 1-indexed month
   
     if (Number.isNaN(yearNum) || Number.isNaN(monthNum)) {
-      throw new Error("Invalid month or year format");
+      throw new ApiError("Invalid month or year format",404);
       return;
     }
   

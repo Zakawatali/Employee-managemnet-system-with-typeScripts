@@ -2,57 +2,52 @@
 import { Request, Response, NextFunction } from 'express';
 import Task from "../models/Task";
 import {
-  CreatetaskService,
-  getAllTaskService,
-  getTaskByIdService,
-  deleteTaskService,
-  updateTaskService,
+CreatetaskService,
+getAllTaskService,
+getTaskByIdService,
+deleteTaskService,
+updateTaskService,
 } from "../Services/taskServices";
 import { AuthenticatedRequest } from "../middlewares/authmiddlewares";
+import { CreateTaskDto } from "../dtos/taskDtos";
+import {ERROR_MESSAGES} from "../constants/errorMessages"
 
 
 export const createTask = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
+req: AuthenticatedRequest,
+res: Response,
+next: NextFunction
 ): Promise<void> => {
-  try {
-    const { title, description, priority, dueDate, assignTo } = req.body;
-    const userId = req.user?._id?.toString();
+try {
+  const createTaskDto: CreateTaskDto = req.body;
+  const { title, description, priority, dueDate, assignTo } = createTaskDto;
+  const userId = req.user?._id?.toString();
 
-    if (!userId) {
-      // res.error("Unauthorized", {}, 401);
-      res.error = "Unauthorized";
-      next(401);
-      return;
-    }
-
-    if (!title || !description || !assignTo) {
-      // res.error("Title, description, and assignTo are required", {}, 400);
-      res.error = "Title, description, and assignTo are required";
-      next(400);
-      return;
-    }
-
-    const newTask = await CreatetaskService({
-      userid: userId,
-      title,
-      description,
-      priority,
-      dueDate,
-      assignTo,
-    });
-
-    // res.success("Task created successfully", { newTask }, 201);
-    res.result = newTask;
-    next(201);
-  } catch (err) {
-      // const message = error instanceof Error ? error.message : "Server error";
-      const message = err instanceof Error ? err.message : "Server error";
-    // res.error("Server error", { error: message }, 500);
-    res.error = message;
-    next(500);
+  if (!userId) {
+    // res.error("Unauthorized", {}, 401);
+    res.error = ERROR_MESSAGES.UNAUTHORIZED;
+    next(401);
+    return;
   }
+  const newTask = await CreatetaskService({
+    userid: userId,
+    title,
+    description,
+    priority,
+    dueDate,
+    assignTo,
+  });
+
+  // res.success("Task created successfully", { newTask }, 201);
+  res.result = newTask;
+  next(201);
+} catch (err) {
+    
+    const message = err instanceof Error ? err.message : "Server error";
+  // res.error("Server error", { error: message }, 500);
+  res.error = message;
+  next(500);
+}
 };
 
 // export const getAllTasks = async (
@@ -95,28 +90,28 @@ export const createTask = async (
 //   }
 // };
 export const getAllTasks = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
+req: AuthenticatedRequest,
+res: Response,
+next: NextFunction
 ): Promise<void> => {
-  try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const status = req.query.status as string | undefined;
-    const priority = req.query.priority as string | undefined;
-    const assignTo = req.query.assignTo as string | undefined; // New filter
+try {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const status = req.query.status as string | undefined;
+  const priority = req.query.priority as string | undefined;
+  const assignTo = req.query.assignTo as string | undefined; // New filter
 
-    const result = await getAllTaskService(page, limit, status, priority, assignTo);
+  const result = await getAllTaskService(page, limit, status, priority, assignTo);
 
-    res.result = result;
-    next(200);
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Error fetching tasks";
+  res.result = result;
+  next(200);
+} catch (error) {
+  const message =
+    error instanceof Error ? error.message : "Error fetching tasks";
 
-    res.error = message;
-    next(500);
-  }
+  res.error = message;
+  next(500);
+}
 };
 
 
@@ -172,37 +167,30 @@ export const getAllTasks = async (
 // };
 
 export const getTaskById = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
+req: AuthenticatedRequest,
+res: Response,
+next: NextFunction
 ): Promise<void> => {
-  try {
-    const { id } = req.params;
+try {
+  const { id } = req.params;
 
-    // Pagination
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+  // Pagination
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
 
-    // Filters
-    const status = req.query.status as string | undefined;
-    const priority = req.query.priority as string | undefined;
+  // Filters
+  const status = req.query.status as string | undefined;
+  const priority = req.query.priority as string | undefined;
 
-    const result = await getTaskByIdService(id, page, limit, status, priority);
-    console.log("The result is",result)
+  const result = await getTaskByIdService(id, page, limit, status, priority);
 
-    if (!result.tasks.length) {
-      res.error = "Task not found";
-      next(404);
-      return;
-    }
-
-    res.result = result;
-    next(200);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Error fetching task";
-    res.error = message;
-    next(500);
-  }
+  res.result = result;
+  next(200);
+} catch (err) {
+  const message = err instanceof Error ? err.message : "Error fetching task";
+  res.error = message;
+  next(500);
+}
 };
 
 // export const updateTask = async (
@@ -257,38 +245,31 @@ export const getTaskById = async (
  * Delegates business logic and database interaction to the service layer.
  */
 export const updateTask = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
+req: AuthenticatedRequest,
+res: Response,
+next: NextFunction
 ): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const updatePayload = req.body;
-    const user = req.user;
+try {
+  const { id } = req.params;
+  const updatePayload = req.body;
+  const user = req.user;
 
-    if (!user) {
-        // Handle case where auth middleware somehow failed to attach user
-        res.error = "Authentication required";
-        next(401);
-        return;
-    }
+  // Delegate the update logic and checks to the service layer
+  const updatedTask = await updateTaskService(id, updatePayload, user);
 
-    // Delegate the update logic and checks to the service layer
-    const updatedTask = await updateTaskService(id, updatePayload, user);
+  res.result = updatedTask;
+  next(200); // Success response
+} catch (err) {
+  const message = err instanceof Error ? err.message : "Error updating task";
+  
+  // Safely determine the status code for known application errors
+  const statusCode = err instanceof Error && 'statusCode' in err && typeof err.statusCode === 'number'
+      ? err.statusCode
+      : 500;
 
-    res.result = updatedTask;
-    next(200); // Success response
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Error updating task";
-    
-    // Safely determine the status code for known application errors
-    const statusCode = err instanceof Error && 'statusCode' in err && typeof err.statusCode === 'number'
-        ? err.statusCode
-        : 500;
-
-    res.error = message;
-    next(statusCode); // Propagate the specific status code
-  }
+  res.error = message;
+  next(statusCode); // Propagate the specific status code
+}
 };
 // export const deleteTask = async (
 //   req: AuthenticatedRequest,
@@ -319,26 +300,26 @@ export const updateTask = async (
 // };
 
 export const deleteTask = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
+req: AuthenticatedRequest,
+res: Response,
+next: NextFunction
 ): Promise<void> => {
-  try {
-    const { id } = req.params;
+try {
+  const { id } = req.params;
 
-    // Delegate business logic and persistence to the service
-    const deletedTask = await deleteTaskService(id);
+  // Delegate business logic and persistence to the service
+  const deletedTask = await deleteTaskService(id);
 
-    res.result = deletedTask;
-    next(200); // Success response
-  } catch (err) {
-    
-    const message = err.message || "Error deleting task";
-    
-    // Determine the status code from the custom error or default to 500
-    const statusCode = err.statusCode || 500;
+  res.result = deletedTask;
+  next(200); // Success response
+} catch (err) {
+  
+  const message = err.message || "Error deleting task";
+  
+  // Determine the status code from the custom error or default to 500
+  const statusCode = err.statusCode || 500;
 
-    res.error = message;
-    next(statusCode); // Propagate the specific status code
-  }
+  res.error = message;
+  next(statusCode); // Propagate the specific status code
+}
 };

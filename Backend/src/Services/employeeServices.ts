@@ -1,6 +1,8 @@
 import * as employeeRepository from "../repositories/employeeRepositories";
 import { EmployeeProfileDocument } from "../models/EmployeeProfile"; // Assuming this type is available
 import { ApiError } from "../utils/ApiError";
+import {ERROR_MESSAGES  } from "../constants/errorMessages";
+import { SUCCESS_MESSAGES } from "../constants/successMessages";
 // Define a custom error type for predictable HTTP status codes
 
 
@@ -14,7 +16,7 @@ export const getEmployeeByIdService = async (id: string): Promise<EmployeeProfil
   const employee = await employeeRepository.findEmployeeById(id);
 
   if (!employee) {
-    throw new Error("Employee not found");
+    throw new ApiError(ERROR_MESSAGES.EMPLOYEE_NOT_FOUND,404);
     return;
   }
 
@@ -36,7 +38,7 @@ export const updateEmployeeService = async (
   const updatedEmployee = await employeeRepository.updateEmployeeById(id, updateData);
 
   if (!updatedEmployee) {
-    throw new ApiError("Employee not found",404);
+    throw new ApiError(ERROR_MESSAGES.EMPLOYEE_NOT_FOUND,404);
     return;
   }
 
@@ -53,7 +55,7 @@ export const deleteEmployeeService = async (id: string): Promise<EmployeeProfile
   const deletedEmployee = await employeeRepository.deleteEmployeeById(id);
 
   if (!deletedEmployee) {
-    throw new Error("Employee not found");
+    throw new ApiError(ERROR_MESSAGES.EMPLOYEE_NOT_FOUND,404);
     return;
   }
 
@@ -178,7 +180,7 @@ export const getAllEmployeesService = async (
 
     // ❌ Throw ApiError if none found
     if (!totalEmployees) {
-      throw new ApiError("No employees found", 404);
+      throw new ApiError(ERROR_MESSAGES.EMPLOYEE_NOT_FOUND, 404);
     }
 
     // Get employees for current page
@@ -196,7 +198,6 @@ export const getAllEmployeesService = async (
       totalPages: Math.ceil(totalEmployees / limit),
     };
   } catch (err: any) {
-    // ❌ Wrap any unexpected errors in ApiError with status 500
     
       throw err; // Already a custom error, rethrow
    

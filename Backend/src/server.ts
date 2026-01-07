@@ -35,7 +35,7 @@ connectDB();
  markAbsentsJob();
 
 app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.urlencoded());
 
 // Initialize result/error holders
 app.use((req: any, res: any, next: any) => {

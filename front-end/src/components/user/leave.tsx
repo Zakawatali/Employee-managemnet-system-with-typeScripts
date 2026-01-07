@@ -316,6 +316,13 @@ const LeaveRequests: React.FC = () => {
   const [reason, setReason] = useState<string>("");
 
   const { user } = useContext<{ user?: User }>(UserInfoContext);
+  const [errors, setErrors] = useState<{
+    leaveType?: string;
+    startDate?: string;
+    endDate?: string;
+    reason?: string;
+  }>({});
+  
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -346,15 +353,9 @@ const LeaveRequests: React.FC = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!leaveType || !startDate || !endDate || !reason) {
-      alert("All fields are required!");
-      return;
-    }
-
-    if (startDate < today || endDate < today) {
-      alert("Dates must be today or later");
-      return;
-    }
+   
+    setErrors({});
+   
 
     const newRequest = {
       employee: user?._id,
@@ -377,8 +378,26 @@ const LeaveRequests: React.FC = () => {
       fetchLeaves();
       toast.success("Leave applied successfully");
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || error.message);
-      console.error(error);
+      const data = error?.response?.data.message;
+
+      // ✅ Joi validation errors
+      if (data?.errors?.length) {
+        const fieldErrors: any = {};
+    
+        data.errors.forEach((err: any) => {
+          if (err.field) {
+            fieldErrors[err.field] = err.message;
+          }
+        });
+    
+        setErrors(fieldErrors);
+        return;
+      }
+      else{
+        toast.error(error?.response?.data?.message || error.message);
+        
+      }
+      
     }
   };
 
@@ -446,13 +465,17 @@ const LeaveRequests: React.FC = () => {
                     setLeaveType(e.target.value as LeaveRequest["leaveType"])
                   }
                   className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
-                >
+                > 
+                
                   <option value="SICK">SICK</option>
                   <option value="CASUAL">CASUAL</option>
                   <option value="ANNUAL">ANNUAL</option>
                   <option value="UNPAID">UNPAID</option>
                 </select>
               </div>
+              {errors.leaveType && (
+              <p className="text-red-500 text-xs mt-1">{errors.leaveType}</p>
+               )}
 
               {/* Dates */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -467,6 +490,9 @@ const LeaveRequests: React.FC = () => {
                     onChange={(e) => setStartDate(e.target.value)}
                     className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
                   />
+                   {errors.startDate && (
+                     <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>
+                       )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -479,6 +505,9 @@ const LeaveRequests: React.FC = () => {
                     onChange={(e) => setEndDate(e.target.value)}
                     className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
                   />
+                            {errors.endDate && (
+                      <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>
+                       )}
                 </div>
               </div>
 
@@ -494,6 +523,9 @@ const LeaveRequests: React.FC = () => {
                   className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
                   placeholder="Enter reason for leave..."
                 />
+                {errors.reason && (
+                  <p className="text-red-500 text-xs mt-1">{errors.reason}</p>
+                   )}
               </div>
 
               {/* Buttons */}

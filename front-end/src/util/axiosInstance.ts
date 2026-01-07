@@ -48,5 +48,16 @@ instance.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+instance.interceptors.response.use(
+  (response) => response, // normal response
+  (error) => {
+    // 🔥 AUTO LOGOUT
+    if (error.response?.status === 401) {
+      console.warn("Token expired or unauthorized → auto logout");
+      localStorage.removeItem("token"); // remove token
+      window.location.href = "/login";  // redirect to login page
+    }
+    return Promise.reject(error);
+  })
 
 export default instance;

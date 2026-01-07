@@ -36,6 +36,7 @@ function App() {
   return (
     <>
       <BrowserRouter>
+      <Toaster position="top-right" reverseOrder={false} />
         <Routes>
           {/* Default redirect from "/" to login */}
           <Route path="/" element={<Navigate to="/login" />} />
@@ -75,7 +76,7 @@ function App() {
           {/* Fallback route if nothing matches */}
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
-        <Toaster />
+       
       </BrowserRouter>
     </>
   )

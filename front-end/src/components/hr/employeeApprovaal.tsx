@@ -327,6 +327,13 @@ interface PaginationResponse {
   totalPages: number;
   page: number;
 }
+type LoadingAction ={
+    id: string; 
+    action: "Approved" | "Rejected"  }
+  
+
+
+
 
 // ------------------------
 // COMPONENT
@@ -341,7 +348,7 @@ const EmployeeApproval: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const limit = 3;
-
+  const [loadingAction, setLoadingAction] =useState<LoadingAction>(null);
   // ------------------------
   // FETCH USERS (SERVER SIDE SEARCH)
   // ------------------------
@@ -388,6 +395,7 @@ const EmployeeApproval: React.FC = () => {
 
   const handleAccept = async (id: string) => {
     try {
+      setLoadingAction({id,action:"Approved"})
       const res = await axios.post(`/api/users/approve/${id}`);
       if (res.data.success) {
         toast.success("User approved");
@@ -396,10 +404,14 @@ const EmployeeApproval: React.FC = () => {
     } catch (err: any) {
       toast.error(err?.response?.data?.message || err.message);
     }
+    finally{
+      setLoadingAction(null)
+    }
   };
 
   const handleReject = async (id: string) => {
-    try {
+    try { 
+      setLoadingAction({id,action:"Rejected"})
       const res = await axios.post(`/api/users/reject/${id}`);
       if (res.data.success) {
         toast.success("User rejected");
@@ -457,15 +469,19 @@ const EmployeeApproval: React.FC = () => {
                     <>
                       <button
                         onClick={() => handleAccept(user._id)}
+                        disabled={loadingAction?.id==user._id}
                         className="bg-green-600 text-white px-3 py-1 rounded"
                       >
-                        Approve
+                       {loadingAction?.id==user._id && loadingAction.action== "Approved"
+                           ? "Approving...": "Approve"}
                       </button>
                       <button
                         onClick={() => handleReject(user._id)}
+                        disabled={loadingAction?.id==user._id}
                         className="bg-red-600 text-white px-3 py-1 rounded"
                       >
-                        Reject
+                        {loadingAction?.id==user._id && loadingAction.action== "Rejected"
+                           ? "Approving...": "Rejected"}
                       </button>
                     </>
                   )}

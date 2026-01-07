@@ -122,12 +122,9 @@ export const findAllLeaves = async (
     );
 
     const result = await Leave.aggregate(pipeline).exec();
-
-    console.log("✅ Leaves found:", result.length);
-
     return result;
   } catch (err: any) {
-    console.error("❌ Error in findAllLeaves:", err);
+  
     throw new ApiError(err.message || "Error fetching leaves from DB", 500);
   }
 };
@@ -138,7 +135,6 @@ export const countLeaves = async (): Promise<number> => {
     const totalLeaves = await Leave.countDocuments();
     return totalLeaves;
   } catch (err: any) {
-    console.error("Error counting leaves:", err);
     throw new Error(err.message || "Error counting leaves");
   }
 };

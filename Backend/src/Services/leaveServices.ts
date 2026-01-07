@@ -4,6 +4,9 @@ import * as leaveRepository from "../repositories/leaveRepositories";
 import { sendEmail } from "../utils/mailService";
 import { emailTemplates } from "../utils/emailTemplates";
 import { Types } from "mongoose";
+import { ERROR_MESSAGES} from "../constants/errorMessages";
+import {SUCCESS_MESSAGES}  from "../constants/successMessages"
+import { ApiError } from "../utils/ApiError";
 
 // Define a custom error type for predictable HTTP status codes
 
@@ -20,7 +23,7 @@ const sendLeaveStatusEmail = async (
     );
 
     if (!employeeProfile) {
-      emailStatus = "Employee not found, email not sent.";
+      emailStatus = ERROR_MESSAGES.EMPLOYEE_NOT_FOUND;
       return emailStatus;
     }
 
@@ -75,7 +78,7 @@ export const deleteLeaveService = async (id: string): Promise<LeaveDocument> => 
   const deletedLeave = await leaveRepository.deleteLeaveById(id);
 
   if (!deletedLeave) {
-    throw new Error("Leave not found");
+    throw new ApiError(ERROR_MESSAGES.NOT_FOUND,404);
   
     return;
   }
@@ -108,7 +111,7 @@ export const deleteLeaveService = async (id: string): Promise<LeaveDocument> => 
 //   };
 // };
 
-import { ApiError } from "../utils/ApiError";
+
 
 
 export const getAllLeavesService = async (

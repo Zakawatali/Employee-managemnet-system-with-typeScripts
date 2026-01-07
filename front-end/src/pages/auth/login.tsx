@@ -146,13 +146,19 @@ import React, { useContext, useState, FormEvent, ChangeEvent } from "react";
 import axios from "../../util/axiosInstance";
 import { UserInfoContext } from "../../context/contextApi";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+
+import { Link, useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
   const { setUser, setAccessToken } = useContext(UserInfoContext);
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
+  
 
   const navigate = useNavigate();
 
@@ -161,6 +167,7 @@ const Login: React.FC = () => {
   // -----------------------------------
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrors({});
 
     try {
       // API Response Type Definition
@@ -177,7 +184,7 @@ const Login: React.FC = () => {
         "/api/users/login",
         { email, password }
       );
-      
+       console.log("the login response is;",response)
       const token = response.data.data.token;
       const role = response.data.data.role;
       
@@ -204,8 +211,27 @@ const Login: React.FC = () => {
 
       }
 
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Login failed");
+    } catch (err: any) {
+      const data = err?.response?.data?.message;
+
+      // ✅ Joi validation errors
+      if (data?.errors?.length) {
+        const fieldErrors: any = {};
+    
+        data.errors.forEach((e: any) => {
+          if (e.field) {
+            fieldErrors[e.field] = e.message;
+          }
+        });
+    
+        setErrors(fieldErrors);
+        return;
+      } else {
+        toast.error(
+          err?.response?.data?.message || err?.response?.data?.error || err.message
+        );
+      }
+     
     }
   };
 
@@ -233,6 +259,9 @@ const Login: React.FC = () => {
               placeholder="john.doe@company.com"
               required
             />
+            {errors.email && (
+               <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
           </div>
 
           <div>
@@ -245,6 +274,9 @@ const Login: React.FC = () => {
               placeholder="••••••••"
               required
             />
+            {errors.password && (
+               <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+               )}
           </div>
 
           {/* Button */}
@@ -258,10 +290,16 @@ const Login: React.FC = () => {
 
         {/* Forgot Password */}
         <p className="mt-6 text-center text-sm text-gray-600">
-          <a href="/forget-password" className="text-red-600 hover:underline">
+          <a href="/forget-password" className="text-green-600 hover:underline">
             Forget Password
           </a>
         </p>
+        <p className="text-sm text-gray-500 text-center">
+            Create new account?{" "}
+            <Link to="/signup" className="text-blue-600 font-medium hover:underline">
+              Sign Up here
+            </Link>
+          </p>
       </div>
     </div>
   );

@@ -1,7 +1,9 @@
 import * as achievementRepository from "../repositories/achievementRepositories";
 import { AchievementDocument } from "../models/Achievement"; // Assuming this type is available
 import { Types } from "mongoose";
-
+import {ERROR_MESSAGES} from "../constants/errorMessages"
+import {SUCCESS_MESSAGES} from "../constants/successMessages"
+import { ApiError } from "../utils/ApiError";
 
 
 /**
@@ -86,7 +88,7 @@ export const getAchievementsByEmployeeService = async (
 }> => {
   // Input Validation
   if (!employeeId || !Types.ObjectId.isValid(employeeId)) {
-    throw new Error("Invalid Employee ID provided");
+    throw new ApiError("Invalid Employee ID provided",401);
   }
 
   const skip = (page - 1) * limit;
@@ -99,7 +101,7 @@ export const getAchievementsByEmployeeService = async (
   );
 
   if (!achievements || achievements.length === 0) {
-    throw new Error("No achievements found for this employee");
+    throw new ApiError(ERROR_MESSAGES.ACHIEVEMENT_NOT_FOUBD,404);
   }
 
   // Get total count for this employee
@@ -127,7 +129,7 @@ export const updateAchievementService = async (
   const updatedAchievement = await achievementRepository.updateAchievementById(id, updateData);
 
   if (!updatedAchievement) {
-    throw new Error("Achievement not found");
+    throw new ApiError(ERROR_MESSAGES.ACHIEVEMENT_NOT_FOUBD,404);
     return;
   }
 
@@ -142,7 +144,7 @@ export const deleteAchievementService = async (id: string): Promise<AchievementD
   const deletedAchievement = await achievementRepository.deleteAchievementById(id);
 
   if (!deletedAchievement) {
-    throw new Error("Achievement not found");
+    throw new ApiError(ERROR_MESSAGES.ACHIEVEMENT_NOT_FOUBD,404);
     return;
   }
 

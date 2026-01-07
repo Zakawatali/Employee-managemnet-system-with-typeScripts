@@ -2,6 +2,9 @@ import * as documentRepository from "../repositories/documentRepositories";
 import { DocumentDocument } from "../models/Document"; // Assuming DocumentDocument type exists
 import { AuthenticatedRequest } from "../middlewares/authmiddlewares"; // Assuming this type is available
 import { Express } from "express"; // Import for Multer File type
+import {ERROR_MESSAGES} from "../constants/errorMessages"
+import {SUCCESS_MESSAGES} from "../constants/successMessages"
+import { ApiError } from "../utils/ApiError";
 
 
 
@@ -84,7 +87,7 @@ export const getDocumentByIdService = async (
   const doc = await documentRepository.findDocumentById(id);
 
   if (!doc) {
-    throw new Error("Document not found");
+    throw new ApiError(ERROR_MESSAGES.DOC_NOT_FOUND,404);
   }
 
   return doc;
@@ -100,7 +103,7 @@ export const downloadDocumentService = async (
   // 1. Check DB record
   const doc = await documentRepository.findDocumentById(id);
   if (!doc) {
-    throw new Error("Document not found");
+    throw new ApiError(ERROR_MESSAGES.DOC_NOT_FOUND,404);
     return;
   }
   
@@ -110,7 +113,7 @@ export const downloadDocumentService = async (
   // 3. Check File System existence
   if (!documentRepository.checkFileExistence(filePath)) {
     // Optionally: Log file missing from disk while DB record exists
-    throw new Error("File not found on server");
+    throw new ApiError("File not found on server",404);
     return;
   }
 
@@ -131,7 +134,7 @@ export const deleteDocumentService = async (id: string): Promise<void> => {
   // 1. Find DB record (for storage key)
   const doc = await documentRepository.findDocumentById(id);
   if (!doc) {
-    throw new Error("Document not found");
+    throw new ApiError(ERROR_MESSAGES.DOC_NOT_FOUND,404);
     return;
   }
   
@@ -141,7 +144,6 @@ export const deleteDocumentService = async (id: string): Promise<void> => {
     documentRepository.deleteFileFromStorage(filePath);
     // Note: If the file is already gone, the unlinkSync inside the repo is guarded, no crash.
   } catch (error) {
-    console.warn(`File deletion warning: Could not delete file ${doc.storageKey}. Proceeding with DB deletion.`);
     return;
   }
 
@@ -149,7 +151,7 @@ export const deleteDocumentService = async (id: string): Promise<void> => {
   const deletedDoc = await documentRepository.deleteDocumentRecord(id);
   if (!deletedDoc) {
     // This should ideally not happen if findById succeeded, but as a safeguard:
-    throw new Error("Document record could not be deleted");
+    throw new ApiError("Document record could not be deleted");
     return;
   }
 };

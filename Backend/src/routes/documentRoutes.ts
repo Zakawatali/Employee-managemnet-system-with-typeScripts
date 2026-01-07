@@ -7,6 +7,8 @@ import {
   deleteDocument,
 } from "../controllers/documentController";
 import upload from "../middlewares/upload";
+import {validateRequest } from "../middlewares/validateRequest"
+import { uploadDocumentSchema} from "../validations/reportValidation"
 import { protect, authorizeRoles } from "../middlewares/authmiddlewares";
 
 const router = Router();
@@ -16,6 +18,7 @@ router.post(
   upload.single("file"),
   protect,
   authorizeRoles("Admin", "HR"),
+  validateRequest(uploadDocumentSchema),
   uploadDocument
 );
 router.get("/", protect, getAllDocuments);

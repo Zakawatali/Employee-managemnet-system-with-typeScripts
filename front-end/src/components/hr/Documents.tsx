@@ -36,6 +36,12 @@ interface FormState {
   title: string;
   file: File | null;
 }
+interface FormErrors {
+  employee?: string;
+  kind?: string;
+  title?: string;
+}
+
 
 const DocumentManagement: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -53,6 +59,8 @@ const DocumentManagement: React.FC = () => {
    const [totalPages, setTotalPages] = useState(1);
   const limit = 5; // Items per page
   const [search, setSearch] = useState(""); // for text search (name/kind)
+  const [errors, setErrors] = useState<FormErrors>({});
+
   // const [typeFilter, setTypeFilter] = useState(""); // for kind dropdown filter
   
   // // Fetch all documents
@@ -117,7 +125,8 @@ const DocumentManagement: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.file) return toast.error("Please select a file");
+    
+    setErrors({});
 
     const data = new FormData();
     data.append("employee", form.employee);
@@ -134,9 +143,23 @@ const DocumentManagement: React.FC = () => {
       setForm({ employee: "", kind: "", title: "", file: null });
       fetchDocuments();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Upload failed");
-      console.error(error);
+      const data = error?.response?.data?.message;
+    
+      if (data?.errors && Array.isArray(data.errors)) {
+        const newErrors: FormErrors = {};
+    
+        data.errors.forEach((e: any) => {
+          if (e.field) {
+            newErrors[e.field as keyof FormErrors] = e.message;
+          }
+        });
+    
+        setErrors(newErrors);
+      } else {
+       toast.error(error?.response?.data?.message || "Upload failed");
+      }
     }
+    
   };
 
   const handleDownload = async (id: string) => {
@@ -217,7 +240,7 @@ const DocumentManagement: React.FC = () => {
                   name="employee"
                   value={form.employee}
                   onChange={handleChange}
-                  required
+                 
                   className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Employee</option>
@@ -227,12 +250,16 @@ const DocumentManagement: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                {errors.employee && (
+                       <p className="text-red-500 text-xs mt-1">{errors.employee}</p>
+                     )}
+
 
                 <select
                   name="kind"
                   value={form.kind}
                   onChange={handleChange}
-                  required
+                 
                   className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Kind</option>
@@ -242,6 +269,10 @@ const DocumentManagement: React.FC = () => {
                   <option value="POLICY">POLICY</option>
                   <option value="OTHER">OTHER</option>
                 </select>
+                {errors.kind && (
+                  <p className="text-red-500 text-xs mt-1">{errors.kind}</p>
+                   )}
+
 
                 <input
                   type="text"
@@ -249,9 +280,12 @@ const DocumentManagement: React.FC = () => {
                   placeholder="Document Title"
                   value={form.title}
                   onChange={handleChange}
-                  required
                   className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 />
+                {errors.title && (
+                      <p className="text-red-500 text-xs mt-1">{errors.title}</p>
+                         )}
+
 
                 <input
                   type="file"

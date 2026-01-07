@@ -179,6 +179,7 @@ import { Request, Response, NextFunction } from "express";
 // import * as leaveService from "../Services/leaveServices";
 import { AuthenticatedRequest } from "../middlewares/authmiddlewares";
 import {getAllLeavesService,deleteLeaveService,applyLeaveService,updateLeaveStatusService,getLeavesByEmployeeService} from "../Services/leaveServices";
+import { ApiError } from "../utils/ApiError";
 
 // Assuming the following interface is available to handle custom errors
 
@@ -279,7 +280,7 @@ export const deleteLeave = async (
 //   }
 // };
 
-import { ApiError } from "../utils/ApiError";
+
 
 export const getAllLeaves = async (req: Request, res: Response, next: NextFunction) => {
   try {

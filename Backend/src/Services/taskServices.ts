@@ -2,7 +2,9 @@ import Task, { ITask, TaskPriority,TaskDocument} from "../models/Task";
 
 import { AuthenticatedRequest} from '../middlewares/authmiddlewares'; // Assuming this defines req.user structure
 import * as taskRepository from '../repositories/taskRepositories';
-
+import { ERROR_MESSAGES} from "../constants/errorMessages";
+import {SUCCESS_MESSAGES}  from "../constants/successMessages"
+ 
 
 import {
   CreatetaskRepo,
@@ -10,14 +12,15 @@ import {
   getTaskByIdRepo,
   deleteTaskById,
 } from "../repositories/taskRepositories";
+import { ApiError } from "../utils/ApiError";
 
 interface CreateTaskDTO {
   userid: string;
   title: string;
   description?: string;
-  priority?: TaskPriority;
   dueDate?: Date | string;
   assignTo: string;
+  priority?: string | TaskPriority;
 }
 
 export const CreatetaskService = async (
@@ -126,14 +129,14 @@ export const updateTaskService = async (
   const task = await taskRepository.findTaskById(taskId);
 
   if (!task) {
-    throw new Error("Task not found");
+    throw new ApiError(ERROR_MESSAGES.TASK_NOT_FOUND, 404);
   }
 
   // 2. Apply Business Logic and Authorization Checks
   if (user.role === "Employee") {
     // Check if the Employee is authorized (assigned to this task)
     if (task.assignTo.toString() !== user._id.toString()) {
-      throw new Error("Not authorized to update this task");
+      throw new ApiError(ERROR_MESSAGES.UNAUTHORIZED, 403);
     }
     
     // Employees are only allowed to update the 'status' field
@@ -158,7 +161,7 @@ export const deleteTaskService = async (taskId: string): Promise<TaskDocument> =
   if (!deletedTask) {
     // Business logic: Task must exist to be deleted
    
-    throw new Error("Task not found");
+    throw new ApiError(ERROR_MESSAGES.TASK_NOT_FOUND,404);
 
   }
   

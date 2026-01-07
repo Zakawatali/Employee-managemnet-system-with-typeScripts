@@ -79,7 +79,18 @@ const ForgotPassword: React.FC = () => {
       toast.success(res.data.data.message || "Reset link sent to your email");
       setEmail("");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Something went wrong");
+     
+      const data = error.response.data.message;
+      console.log("the error is",data)
+    
+      if (data?.errors?.length) {
+        data.errors.forEach((e: any) => {
+          toast.error(e.message); // ✅ STRING
+        });
+      }
+      else  {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      }
     }
   };
 
