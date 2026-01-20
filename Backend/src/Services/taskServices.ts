@@ -127,7 +127,7 @@ export const updateTaskService = async (
 ): Promise<TaskDocument> => {
   // 1. Fetch Task from Repository
   const task = await taskRepository.findTaskById(taskId);
-
+console.log(task)
   if (!task) {
     throw new ApiError(ERROR_MESSAGES.TASK_NOT_FOUND, 404);
   }

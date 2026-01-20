@@ -88,9 +88,12 @@ export const registerUser = async (
 
 export const loginUser = async ( req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    console.log("the body data is",req.body)
     const loginDto: LoginDto = req.body;
-    const { email, password } = loginDto;
+   
+    const { email, password } =  req.body;
     const result = await LoginUserService(email, password);
+    console.log("the result",result)
      res.result = result;
     next(200); 
   } catch (err) {

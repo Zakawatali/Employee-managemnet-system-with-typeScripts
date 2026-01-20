@@ -12,31 +12,23 @@ import leaveRoutes from "./routes/leaveRoutes";
  import documentRoutes from "./routes/documentRoutes";
  import { markAbsentsJob } from "./utils/attendanceCron";
 import { OutputHandler } from "./middlewares/outputHandler";
+import rateLimit     from "./utils/rateLimit"
 
 
 dotenv.config();
-
-
-
-// ✅ allow requests from your frontend
-
-
 const app: Application = express();
 
 const corsOptions: CorsOptions = {
   origin: process.env.FRONTEND_URL || "*",
 };
-
 app.use(cors(corsOptions));
-
-// ✅ Start Cron Job
-
 connectDB();
+// ✅ Start Cron Job
  markAbsentsJob();
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded());
-
+app.use(rateLimit)
 // Initialize result/error holders
 app.use((req: any, res: any, next: any) => {
   res.result = null;
@@ -49,16 +41,17 @@ app.use((req: any, res: any, next: any) => {
  const uploadsDir = path.resolve(__dirname, "../uploads");
 
 // Routes
-app.use("/api/users", userRoutes);
+ app.use("/api/users", userRoutes);
  app.use("/api/employee", employeeRoutes);
-app.use("/api/task", taskRoutes);
-app.use("/api/attendance", attendanceRoutes);
-app.use("/api/leaves", leaveRoutes);
-app.use("/api/achievements", achievementRoutes);
+ app.use("/api/task", taskRoutes);
+ app.use("/api/attendance", attendanceRoutes);
+ app.use("/api/leaves", leaveRoutes);
+ app.use("/api/achievements", achievementRoutes);
  app.use("/uploads", express.static(uploadsDir));
  app.use("/api/documents", documentRoutes);
 // Output Handler
 app.use(OutputHandler)
+
 const PORT = Number(process.env.PORT) || 3000;
 
 app.listen(PORT, () => {

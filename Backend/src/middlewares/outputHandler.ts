@@ -36,6 +36,7 @@ export const OutputHandler = (status: number, req: Request, res: Response, next:
       case 401:
       case 403:
       case 409:
+      case 429:
       case 500:
         return { success: false, message:error };
       default:
