@@ -62,6 +62,7 @@ export const getAllAchievementsService = async (
   const [achievements, total] = await Promise.all([
     achievementRepository.findAllAchievementsPaginated(skip, limit, search),
     achievementRepository.countAchievements(),
+    
   ]);
 
   return {

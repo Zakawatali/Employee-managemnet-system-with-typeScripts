@@ -118,7 +118,8 @@ export const findAllLeaves = async (
 
     pipeline.push(
       { $skip: skip },
-      { $limit: limit }
+      { $limit: limit },
+      { $sort:{createdAt:-1}}
     );
 
     const result = await Leave.aggregate(pipeline).exec();

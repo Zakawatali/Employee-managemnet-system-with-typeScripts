@@ -56,6 +56,7 @@ export const findAllUser = async (
     .select("-password")
     .skip(skip)
     .limit(limit)
+    .sort({createdAt:-1})
     .exec();
 
   const total = await User.countDocuments(filter);

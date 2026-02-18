@@ -61,7 +61,10 @@ export const deleteAttendanceRecord = async (id: string): Promise<AttendanceDocu
 export const findAllAttendance = async (): Promise<AttendanceDocument[]> => {
   return Attendance.find()
     .populate("employeeId", "firstName lastName email department")
+    .sort({ createdAt: -1 })
     .exec();
+  
+    
 };
 
 /**

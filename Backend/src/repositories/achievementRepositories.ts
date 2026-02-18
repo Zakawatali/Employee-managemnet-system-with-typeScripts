@@ -58,10 +58,12 @@ export const findAllAchievementsPaginated = async (
         as: "user",
       },
     },
+    { $sort: { createdAt: -1 } }, 
     { $unwind: "$user" }, // Flatten the user array
     { $match: matchStage },
     { $skip: skip },
-    { $limit: limit },
+      { $limit: limit },
+
     {
       $project: {
         title: 1,

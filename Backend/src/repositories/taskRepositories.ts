@@ -63,6 +63,9 @@ export const getalltaskRepo = async (
         path: "$assignTo",
         preserveNullAndEmptyArrays: true
       }
+    },
+    {
+      $sort:{createdAt:-1}
     }
   );
   
