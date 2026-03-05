@@ -78,7 +78,7 @@ export const deleteLeaveService = async (id: string): Promise<LeaveDocument> => 
   const deletedLeave = await leaveRepository.deleteLeaveById(id);
 
   if (!deletedLeave) {
-    throw new ApiError(ERROR_MESSAGES.NOT_FOUND,404);
+    throw new ApiError(ERROR_MESSAGES.LEAVE_NOT_FOUND,404);
   
     return;
   }
@@ -129,13 +129,9 @@ export const getAllLeavesService = async (
   try {
     const leaves = await leaveRepository.findAllLeaves(page, limit, search, leaveType);
     const count = await leaveRepository.countLeaves();
-    console.log("Total leave documents:", count);
-    
-    console.log("leave",leaves)
-    console.log("count",count)
    
     if (!leaves.length) {
-      throw new ApiError("No leaves found", 404);
+      throw new ApiError(ERROR_MESSAGES.LEAVE_NOT_FOUND, 404);
     }
 
     return {
@@ -147,7 +143,7 @@ export const getAllLeavesService = async (
     };
   } catch (err: any) {
     if (err instanceof ApiError) throw err;
-    throw new ApiError(err.message || "Error fetching leaves", 500);
+    throw new ApiError(err.message , 500);
   }
 };
 
@@ -161,7 +157,7 @@ export const getLeavesByEmployeeService = async (
   const leaves = await leaveRepository.findLeavesByEmployeeId(employeeId);
 
   if (!leaves || leaves.length === 0) {
-    throw new Error("No leaves found for this employee");
+    throw new ApiError(ERROR_MESSAGES.LEAVE_NOT_FOUND,404);
   }
 
   return leaves;  // ✅ correctly typed
@@ -179,7 +175,7 @@ export const updateLeaveStatusService = async (
   const leave = await leaveRepository.findLeaveById(id);
 
   if (!leave) {
-    throw new Error("Leave not found");
+    throw new ApiError(ERROR_MESSAGES.LEAVE_NOT_FOUND,404);
     return;
   }
 

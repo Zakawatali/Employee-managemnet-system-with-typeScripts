@@ -3,11 +3,17 @@ import EmployeeProfile, {
 } from "../models/EmployeeProfile";
 import User, { IUser } from "../models/User";
 
+// export const findUserByEmail = async (
+//   email: string
+// ): Promise<EmployeeProfileDocument | null> => {
+//   return EmployeeProfile.findOne({ email })
+// };
 export const findUserByEmail = async (
   email: string
 ): Promise<EmployeeProfileDocument | null> => {
-  return EmployeeProfile.findOne({ email });
+  return EmployeeProfile.findOne({ email }).select("+password");
 };
+
 
 // export const findAllUser = async (page: number = 1, limit: number = 10): Promise<{ users: IUser[]; total: number; totalPages: number ; page: number }> => {
 //   const skip = (page - 1) * limit;

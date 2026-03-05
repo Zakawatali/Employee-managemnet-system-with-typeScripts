@@ -121,7 +121,7 @@ export const RegisterUserService = async (
     const existingUser = await findUserByEmail(userData.email);
 
     if (existingUser) {
-      throw new ApiError("User already exists with this email", 409);
+      throw new ApiError(ERROR_MESSAGES.USER_ALREADY_EXISTS, 409);
     }
 
     // Hash password
@@ -148,7 +148,8 @@ export const RegisterUserService = async (
     // Save to DB
     await newUser.save();
 
-    console.log("User saved successfully:", newUser);
+    
+    
     return { newUser };
   } catch (error: any) {
     // Log the error for debugging
@@ -181,7 +182,7 @@ export const ApproveUserServices = async (
   const user = await FindUserIdandEmail(userId);
 
   if (!user) {
-    throw new Error("User not found");
+    throw new ApiError(ERROR_MESSAGES.USER_NOT_FOUND, 404);
   }
 
   const employeeProfile = new EmployeeProfile({
@@ -213,8 +214,8 @@ export const ApproveUserServices = async (
     });
   } catch (emailErr) {
     const message =
-      emailErr instanceof Error ? emailErr.message : "Unknown email error";
-    console.error("Error sending email:", message);
+      emailErr instanceof Error ? emailErr.message : ERROR_MESSAGES.UNKNOWN_EMAIL;
+   
   }
 
   return { user, employeeProfile };
@@ -226,7 +227,7 @@ export const RejectUserServices = async (
   const user = await FindUserIdandEmail(userId);
 
   if (!user) {
-    throw new Error("User not found");
+    throw new ApiError(ERROR_MESSAGES.USER_NOT_FOUND, 404);
   }
 
   await user.deleteOne();
@@ -261,17 +262,17 @@ export const ForgetPasswordServices = async (
 
   const respose = {
     status: 200,
-    message: "Reset email sent successfully",
+    message: SUCCESS_MESSAGES.RESET_EMAIL_SENT_SUCCESSFULLY,
   };
 
   return { user, respose };
     
   } catch (error) {
-    console.error("ForgetPasswordServices Error:", error,"status",error.statusCode);
+    console.error(ERROR_MESSAGES.FORGET_PASSWORD_ERROR, error,"status",error.statusCode);
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError(error.message || "Something went wrong during password forget", error.statusCode || 500);
+    throw new ApiError(error.message , error.statusCode || 500);
     
   }
   
@@ -285,19 +286,19 @@ export const ResetPasswordService = async (
     const decoded = jwt.verify(token, getJwtSecret()) as ResetTokenPayload;
 
     if (!decoded?.userId) {
-      throw new ApiError("Invalid or expired token",401);
+      throw new ApiError(ERROR_MESSAGES.INVALID_OR_EXPIRED_TOKEN,401);
     }
 
     const Emp = await FindEmployeeId(decoded.userId);
 
     if (!Emp) {
-      throw new ApiError("Employee not found in the system for the provided reset token",401);
+      throw new ApiError(ERROR_MESSAGES.USER_NOT_FOUND,401);
     }
 
     // Compare new password with old hashed password
     const isSamePassword = await bcrypt.compare(newPass, Emp.password);
     if (isSamePassword) {
-      throw new ApiError("Please enter a new password different from the old password",401);
+      throw new ApiError(ERROR_MESSAGES.NEW_PASSWORD_SAME_AS_OLD_PASSWORD,401);
     }
 
     // Hash & save new password
@@ -305,16 +306,13 @@ export const ResetPasswordService = async (
     Emp.password = hashedPassword;
     await Emp.save();
 
-    return { Emp, response: "Password Reset Successfully" };
+    return { Emp, response: SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESSFULLY };
   } catch (error: any) {
-    // Log the error if needed
-    console.error("ResetPasswordService Error:", error,"status",error.statusCode);
 
-    // Throw error to be caught in controller
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError(error.message || "Something went wrong during password reset", error.statusCode || 500);
+    throw new ApiError(error.message , error.statusCode || 500);
   }
 };
 

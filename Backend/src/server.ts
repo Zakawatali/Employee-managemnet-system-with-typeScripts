@@ -49,6 +49,7 @@ app.use((req: any, res: any, next: any) => {
  app.use("/api/achievements", achievementRoutes);
  app.use("/uploads", express.static(uploadsDir));
  app.use("/api/documents", documentRoutes);
+ app.use('/uploads', express.static(uploadsDir));
 // Output Handler
 app.use(OutputHandler)
 

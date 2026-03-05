@@ -60,7 +60,6 @@ router.get(
 router.put(
   "/:id",
   protect,
-  validateRequest(createTaskSchema),
   activityLogger({ action: "UPDATE_TASK", module: "HR" }),
   updateTask
 );

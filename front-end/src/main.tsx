@@ -6,7 +6,6 @@ import App from './App.jsx'
 import { UserInfoProvider } from './context/contextApi.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
    
     <UserInfoProvider>
    
@@ -15,5 +14,5 @@ createRoot(document.getElementById('root')).render(
    
     </UserInfoProvider>
     
-  </StrictMode>
+  
 )

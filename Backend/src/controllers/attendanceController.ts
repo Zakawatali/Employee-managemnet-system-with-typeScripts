@@ -420,12 +420,6 @@ export const getAttendanceById = async (
     // Handling multiple possible param names from the original controller logic
     const employeeId = req.params.Id || req.params.employeeId; 
 
-    if (!employeeId) {
-      res.error = "Employee ID is required";
-      next(400);
-      return;
-    }
-
     const result = await attendanceService.getAttendanceByEmployeeIdService(employeeId);
 
     res.result = result;

@@ -200,7 +200,7 @@ export const getAllEmployees = async (
 ): Promise<void> => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 100;
 
     // ✅ new query params
     const search = (req.query.search as string) || "";
